@@ -18,3 +18,21 @@
 
 # Hardhat coverage reports
 /coverage
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Environment variables (KHÔNG push private keys!)
+.env
+.env.local
+*.env
+
+# Temp files
+deploy_output.txt
+*.log
+ignition/deployments/

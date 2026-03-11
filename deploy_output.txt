@@ -1,5 +1,0 @@
-﻿
-Deploying contracts with the account: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
-Mock JPYC deployed to: 0x0165878a594ca255338adfa4d48449f69242eb8f
-AlooSimPayment deployed to: 0xa513e6e4b8f2a923d98304ec87f64353c4d5c853
-Minted 10000 JPYC cho ví khách hàng: 0x70997970c51812dc3a010c7d01b50e0d17dc79c8

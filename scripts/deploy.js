@@ -19,9 +19,14 @@ async function main() {
   ]);
   console.log("AlooSimPayment deployed to:", paymentContract.address);
 
-  // 3. Tặng 10,000 JPYC cho khách hàng để test
+  // 3. Mint 1,000,000 JPYC vào Ví Tổng (Account #0 = deployer = Master Wallet)
+  //    Đây là "quỹ JPYC" của Aloo để phân phối cho khách hàng khi họ nạp tiền
+  await token.write.mint([deployer.account.address, parseUnits("1000000", 18)]);
+  console.log("Minted 1,000,000 JPYC (Quỹ Aloo) vào Ví Tổng:", deployer.account.address);
+
+  // 4. Mint 10,000 JPYC cho khách hàng test (Account #1)
   await token.write.mint([customer.account.address, parseUnits("10000", 18)]);
-  console.log("Minted 10000 JPYC cho ví khách hàng:", customer.account.address);
+  console.log("Minted 10,000 JPYC (Test) cho ví khách hàng:", customer.account.address);
 }
 
 main().catch((error) => {

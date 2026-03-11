@@ -3,841 +3,705 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aloo SIM - Thanh toán Web3</title>
-    <meta name="description" content="Giao diện thanh toán SIM quốc tế qua blockchain - Aloo Telecom">
+    <title>Aloo SIM — Ví điện tử Web3</title>
+    <meta name="description" content="Nạp ví và mua SIM quốc tế giả lập ví điện tử Web3 — Aloo Telecom">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-dark: #0a0e1a;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --bg-card-hover: rgba(255, 255, 255, 0.07);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --text-primary: #e8ecf4;
-            --text-secondary: #8a94a8;
-            --text-muted: #5a6478;
-            --accent-orange: #f6851b;
-            --accent-orange-glow: rgba(246, 133, 27, 0.25);
-            --accent-blue: #4a9eff;
-            --accent-blue-glow: rgba(74, 158, 255, 0.2);
-            --accent-green: #34d399;
-            --accent-green-glow: rgba(52, 211, 153, 0.2);
-            --accent-red: #f87171;
-            --accent-purple: #a78bfa;
-            --radius: 16px;
+            --bg: #070c1a;
+            --surface: rgba(255,255,255,0.03);
+            --surface-hover: rgba(255,255,255,0.055);
+            --border: rgba(255,255,255,0.07);
+            --border-lit: rgba(255,255,255,0.13);
+            --text-1: #e8edf8;
+            --text-2: #8896ae;
+            --text-3: #48566c;
+            --green: #34d399;
+            --green-dim: rgba(52,211,153,0.14);
+            --blue: #60a5fa;
+            --blue-dim: rgba(96,165,250,0.12);
+            --orange: #fb923c;
+            --orange-dim: rgba(251,146,60,0.13);
+            --purple: #a78bfa;
+            --red: #f87171;
+            --radius: 20px;
+            --radius-md: 14px;
             --radius-sm: 10px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --ease: cubic-bezier(0.4,0,0.2,1);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 24px;
-            position: relative;
-            overflow-x: hidden;
         }
 
-        /* Animated background gradients */
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            inset: 0;
             background:
-                radial-gradient(ellipse at 20% 50%, rgba(74, 158, 255, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(167, 139, 250, 0.05) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, rgba(246, 133, 27, 0.04) 0%, transparent 50%);
-            animation: bgShift 15s ease-in-out infinite alternate;
-            z-index: 0;
+                radial-gradient(ellipse 70% 55% at 10% 50%, rgba(96,165,250,0.055) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 50% at 90% 20%, rgba(167,139,250,0.045) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 50% 90%, rgba(52,211,153,0.04)  0%, transparent 50%);
+            pointer-events: none;
+            animation: glow 20s ease-in-out infinite alternate;
         }
 
-        @keyframes bgShift {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-5%, 3%) rotate(3deg); }
+        @keyframes glow {
+            0%   { opacity: 1; }
+            100% { opacity: 0.65; }
         }
 
-        .container {
+        .shell {
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        /* Header / Brand */
-        .brand {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .brand-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--accent-orange), #e06b10);
+        /* ── HEADER ─────────────────────────── */
+        .header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 4px 20px var(--accent-orange-glow);
-        }
-
-        .brand h1 {
-            font-size: 26px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--text-primary), var(--accent-orange));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
-        }
-
-        .brand-sub {
-            font-size: 13px;
-            color: var(--text-muted);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Main Card */
-        .card {
-            background: var(--bg-card);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            padding: 28px;
-            box-shadow:
-                0 8px 40px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-
-        /* Network Badge */
-        .network-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            background: rgba(52, 211, 153, 0.08);
-            border: 1px solid rgba(52, 211, 153, 0.15);
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--accent-green);
-            margin-bottom: 22px;
-            letter-spacing: 0.3px;
-        }
-
-        .network-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
-            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
-        }
-
-        /* Order Info */
-        .order-info {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            padding: 18px;
-            margin-bottom: 24px;
-        }
-
-        .order-row {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
         }
 
-        .order-row:not(:last-child) {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .order-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .order-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .order-value.amount {
-            font-size: 18px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .order-value.wallet {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Step Progress */
-        .steps-progress {
+        .logo {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0;
-            margin-bottom: 24px;
-        }
-
-        .step-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .step-circle {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            border: 2px solid var(--border-glass);
-            color: var(--text-muted);
-            background: transparent;
-            transition: var(--transition);
-        }
-
-        .step-circle.active {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-            background: var(--accent-blue-glow);
-            box-shadow: 0 0 20px var(--accent-blue-glow);
-        }
-
-        .step-circle.done {
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-            background: var(--accent-green-glow);
-        }
-
-        .step-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: var(--transition);
-        }
-
-        .step-indicator.active .step-label { color: var(--accent-blue); }
-        .step-indicator.done .step-label { color: var(--accent-green); }
-
-        .step-line {
-            flex: 1;
-            height: 2px;
-            background: var(--border-glass);
-            margin: 0 8px;
-            margin-bottom: 20px;
-            border-radius: 2px;
-            transition: var(--transition);
-            min-width: 40px;
-        }
-
-        .step-line.done {
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-        }
-
-        /* Buttons */
-        .btn-group {
-            display: flex;
-            flex-direction: column;
             gap: 10px;
-            margin-bottom: 22px;
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #fb923c, #b45309);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px;
+            box-shadow: 0 4px 16px rgba(251,146,60,0.28);
+        }
+
+        .logo-text strong {
+            font-size: 17px; font-weight: 800;
+            color: var(--text-1); letter-spacing: -0.3px;
+        }
+
+        .logo-text span {
+            display: block; font-size: 10px; color: var(--text-3);
+            letter-spacing: 1.2px; text-transform: uppercase; margin-top: 1px;
+        }
+
+        .online-badge {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; color: var(--green);
+            padding: 5px 12px;
+            border: 1px solid rgba(52,211,153,0.15);
+            border-radius: 20px;
+            background: var(--green-dim);
+        }
+
+        .online-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%; background: var(--green);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+            50%      { opacity:0.6; box-shadow: 0 0 0 5px rgba(52,211,153,0); }
+        }
+
+        /* ── CARD ────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            backdrop-filter: blur(30px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        /* ── WALLET DISPLAY ──────────────────── */
+        .wallet-card {
+            background: linear-gradient(135deg, #111827, #0c1525);
+            border: 1px solid var(--border-lit);
+            border-radius: var(--radius-md);
+            padding: 22px 22px 18px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .wallet-card::after {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(52,211,153,0.1), transparent 70%);
+            pointer-events: none;
+        }
+
+        .wallet-email {
+            font-size: 12px; color: var(--text-2);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+
+        .wallet-email input {
+            background: transparent;
+            border: none; outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px; color: var(--text-1);
+            font-weight: 500;
+            width: 220px;
+        }
+
+        .wallet-email input:focus {
+            color: var(--blue);
+        }
+
+        .balance-label {
+            font-size: 11px; color: var(--text-3);
+            text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 6px;
+        }
+
+        .balance-amount {
+            font-size: 42px; font-weight: 800;
+            color: var(--text-1); letter-spacing: -1.5px;
+            line-height: 1;
+        }
+
+        .balance-amount span {
+            font-size: 18px; font-weight: 600; color: var(--text-2);
+            margin-left: 6px; letter-spacing: 0;
+        }
+
+        .balance-vnd {
+            font-size: 13px; color: var(--text-3); margin-top: 6px;
+        }
+
+        .invisible-addr {
+            display: none;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--purple);
+            word-break: break-all;
+        }
+
+        .invisible-addr.show { display: block; }
+
+        /* ── SECTION TITLE ───────────────────── */
+        .section-title {
+            font-size: 12px; font-weight: 600;
+            color: var(--text-3); text-transform: uppercase; letter-spacing: 0.7px;
+            margin-bottom: 12px;
+        }
+
+        /* ── SIM PRODUCT ─────────────────────── */
+        .sim-product {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            cursor: default;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+        }
+
+        .sim-product.selected {
+            border-color: rgba(52,211,153,0.3);
+            background: rgba(52,211,153,0.04);
+        }
+
+        .sim-product.selected:hover { }
+
+        .sim-flag {
+            font-size: 32px; flex-shrink: 0;
+        }
+
+        .sim-info { flex: 1; }
+        .sim-name { font-size: 14px; font-weight: 700; color: var(--text-1); }
+        .sim-detail { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+        .sim-price {
+            text-align: right; flex-shrink: 0;
+        }
+
+        .sim-price-jpyc {
+            font-size: 16px; font-weight: 800; color: var(--green);
+        }
+
+        .sim-price-vnd {
+            font-size: 11px; color: var(--text-3); margin-top: 2px;
+        }
+
+        /* ── BUTTONS ─────────────────────────── */
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
         .btn {
-            width: 100%;
-            padding: 14px 20px;
+            padding: 14px;
             border: none;
             border-radius: var(--radius-sm);
             font-family: 'Inter', sans-serif;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.22s var(--ease);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             position: relative;
             overflow: hidden;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.1px;
         }
 
         .btn::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, transparent 55%);
             pointer-events: none;
         }
 
-        .btn-connect {
-            background: linear-gradient(135deg, #f6851b, #e06b10);
+        .btn-topup {
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
             color: white;
-            box-shadow: 0 4px 20px var(--accent-orange-glow);
-        }
-        .btn-connect:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(246, 133, 27, 0.35);
+            box-shadow: 0 4px 18px rgba(96,165,250,0.22);
         }
 
-        .btn-approve {
-            background: linear-gradient(135deg, #4a9eff, #3178d6);
-            color: white;
-            box-shadow: 0 4px 20px var(--accent-blue-glow);
-        }
-        .btn-approve:hover:not(:disabled) {
+        .btn-topup:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(74, 158, 255, 0.35);
+            box-shadow: 0 6px 28px rgba(96,165,250,0.35);
         }
 
-        .btn-pay {
-            background: linear-gradient(135deg, #34d399, #10b981);
+        .btn-buy {
+            background: linear-gradient(135deg, #34d399, #059669);
             color: white;
-            box-shadow: 0 4px 20px var(--accent-green-glow);
+            box-shadow: 0 4px 18px rgba(52,211,153,0.22);
         }
-        .btn-pay:hover:not(:disabled) {
+
+        .btn-buy:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(52, 211, 153, 0.35);
+            box-shadow: 0 6px 28px rgba(52,211,153,0.35);
         }
 
         .btn:disabled {
-            background: rgba(255, 255, 255, 0.04) !important;
-            color: var(--text-muted) !important;
+            background: rgba(255,255,255,0.04) !important;
+            color: var(--text-3) !important;
             box-shadow: none !important;
+            border: 1px solid var(--border);
             cursor: not-allowed;
             transform: none !important;
-            border: 1px solid var(--border-glass);
         }
 
         .btn:disabled::after { display: none; }
 
-        .btn .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
+        .spinner {
+            width: 15px; height: 15px;
+            border: 2px solid rgba(255,255,255,0.25);
             border-top-color: white;
             border-radius: 50%;
-            animation: spin 0.6s linear infinite;
+            animation: spin 0.55s linear infinite;
             display: none;
         }
 
         .btn.loading .spinner { display: block; }
         .btn.loading .btn-text { opacity: 0.7; }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Log Console */
-        .log-section {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
+        /* ── LOG ─────────────────────────────── */
+        .log-wrap {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             overflow: hidden;
         }
 
-        .log-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid var(--border-glass);
+        .log-titlebar {
+            display: flex; align-items: center; gap: 7px;
+            padding: 9px 14px;
+            background: rgba(255,255,255,0.018);
+            border-bottom: 1px solid var(--border);
         }
 
-        .log-header-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
 
-        .log-header span {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .log-titlebar span {
+            font-size: 10px; font-weight: 700; color: var(--text-3);
+            letter-spacing: 1px; text-transform: uppercase;
         }
 
         .log-body {
             padding: 12px 14px;
-            height: 150px;
+            height: 155px;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
             font-size: 11.5px;
-            line-height: 1.7;
+            line-height: 1.75;
         }
 
-        .log-body::-webkit-scrollbar {
-            width: 4px;
-        }
+        .log-body::-webkit-scrollbar { width: 3px; }
+        .log-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
 
-        .log-body::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .le { animation: le-in 0.25s ease; }
 
-        .log-body::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .log-entry {
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
+        @keyframes le-in {
             from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .log-entry .timestamp {
-            color: var(--text-muted);
-            margin-right: 6px;
+        .le .ts { color: var(--text-3); font-size: 10px; margin-right: 5px; }
+        .le.info    { color: var(--text-2); }
+        .le.ok      { color: var(--green); }
+        .le.err     { color: var(--red); }
+        .le.warn    { color: var(--orange); }
+        .le.hash    { color: var(--purple); }
+        .le.step    { color: var(--blue); }
+        .le.sep     { color: var(--text-3); }
+
+        /* ── SUCCESS TOAST ────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            background: rgba(14,28,22,0.95);
+            border: 1px solid rgba(52,211,153,0.25);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex; align-items: flex-start; gap: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            max-width: 330px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 99;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+
+        .toast-content h4 { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 3px; }
+        .toast-content p  { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+
+        .toast-hash {
+            margin-top: 6px;
+            font-family: monospace;
             font-size: 10px;
+            color: var(--purple);
+            background: rgba(167,139,250,0.08);
+            padding: 4px 8px;
+            border-radius: 5px;
+            word-break: break-all;
         }
 
-        .log-entry.info { color: var(--text-secondary); }
-        .log-entry.success { color: var(--accent-green); }
-        .log-entry.error { color: var(--accent-red); }
-        .log-entry.warn { color: var(--accent-orange); }
-        .log-entry.hash { color: var(--accent-purple); }
-        .log-entry.webhook { color: var(--accent-blue); }
-
-        /* Footer */
+        /* ── FOOTER ──────────────────────────── */
         .footer {
             text-align: center;
-            margin-top: 20px;
             font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .footer a {
-            color: var(--accent-blue);
-            text-decoration: none;
-        }
-
-        /* Success State Overlay */
-        .success-overlay {
-            display: none;
-            position: absolute;
-            inset: 0;
-            background: rgba(10, 14, 26, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: var(--radius);
-            z-index: 10;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .success-overlay.show {
-            display: flex;
-        }
-
-        .success-icon {
-            font-size: 56px;
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0); }
-            60% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .success-overlay h3 {
-            color: var(--accent-green);
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .success-overlay p {
-            color: var(--text-secondary);
-            font-size: 13px;
-            max-width: 260px;
-            text-align: center;
-            line-height: 1.6;
-        }
-
-        .btn-dismiss {
-            margin-top: 8px;
-            padding: 10px 28px;
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            background: rgba(255,255,255,0.05);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-dismiss:hover {
-            background: rgba(255,255,255,0.1);
+            color: var(--text-3);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Brand -->
-    <div class="brand">
-        <div class="brand-logo">
-            <div class="brand-icon">📱</div>
-            <h1>Aloo SIM</h1>
-        </div>
-        <p class="brand-sub">Thanh toán SIM Quốc Tế qua Web3</p>
-    </div>
-
-    <!-- Main Card -->
-    <div class="card" id="mainCard">
-
-        <!-- Success Overlay -->
-        <div class="success-overlay" id="successOverlay">
-            <div class="success-icon">🎉</div>
-            <h3>Thanh toán thành công!</h3>
-            <p>Smart Contract đã nhận tiền. Hệ thống đang xử lý cấp SIM cho bạn.</p>
-            <button class="btn-dismiss" onclick="document.getElementById('successOverlay').classList.remove('show')">Đóng</button>
-        </div>
-
-        <!-- Network Badge -->
-        <div class="network-badge">
-            <div class="network-dot"></div>
-            Hardhat Localhost:8545
-        </div>
-
-        <!-- Order Info -->
-        <div class="order-info">
-            <div class="order-row">
-                <span class="order-label">Mã đơn hàng</span>
-                <span class="order-value" id="orderId">SIM_JP_001</span>
-            </div>
-            <div class="order-row">
-                <span class="order-label">Gói SIM</span>
-                <span class="order-value">🇯🇵 Nhật Bản — 7 ngày / 5GB</span>
-            </div>
-            <div class="order-row">
-                <span class="order-label">Thanh toán</span>
-                <span class="order-value amount">3,000 JPYC</span>
-            </div>
-            <div class="order-row">
-                <span class="order-label">Ví kết nối</span>
-                <span class="order-value wallet" id="walletAddress">Chưa kết nối</span>
-            </div>
-            <div class="order-row" id="balanceRow" style="display:none;">
-                <span class="order-label">Số dư JPYC</span>
-                <span class="order-value" id="walletBalance" style="color: var(--accent-green);">—</span>
-            </div>
-        </div>
-
-        <!-- Step Progress -->
-        <div class="steps-progress">
-            <div class="step-indicator active" id="step1">
-                <div class="step-circle active">1</div>
-                <span class="step-label">Kết nối</span>
-            </div>
-            <div class="step-line" id="line1"></div>
-            <div class="step-indicator" id="step2">
-                <div class="step-circle">2</div>
-                <span class="step-label">Uỷ quyền</span>
-            </div>
-            <div class="step-line" id="line2"></div>
-            <div class="step-indicator" id="step3">
-                <div class="step-circle">3</div>
-                <span class="step-label">Thanh toán</span>
-            </div>
-        </div>
-
-        <!-- Buttons -->
-        <div class="btn-group">
-            <button class="btn btn-connect" id="btnConnect">
-                <div class="spinner"></div>
-                <span class="btn-text">🦊 Kết nối MetaMask</span>
-            </button>
-            <button class="btn btn-approve" id="btnApprove" disabled>
-                <div class="spinner"></div>
-                <span class="btn-text">✅ Cấp quyền JPYC (Approve)</span>
-            </button>
-            <button class="btn btn-pay" id="btnPay" disabled>
-                <div class="spinner"></div>
-                <span class="btn-text">💳 Thanh toán 3,000 JPYC</span>
-            </button>
-        </div>
-
-        <!-- Log Console -->
-        <div class="log-section">
-            <div class="log-header">
-                <div class="log-header-dot" style="background: #f87171;"></div>
-                <div class="log-header-dot" style="background: #fbbf24;"></div>
-                <div class="log-header-dot" style="background: #34d399;"></div>
-                <span>Transaction Log</span>
-            </div>
-            <div class="log-body" id="logBody">
-                <div class="log-entry info"><span class="timestamp">[System]</span> Sẵn sàng. Vui lòng kết nối ví MetaMask để bắt đầu.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        Powered by <strong>Solidity</strong> & <strong>ethers.js</strong> — Aloo Telecom &copy; 2026
+<!-- Toast notification -->
+<div class="toast" id="toast">
+    <div class="toast-icon" id="toastIcon">🎉</div>
+    <div class="toast-content">
+        <h4 id="toastTitle">Thành công!</h4>
+        <p id="toastMsg">—</p>
+        <div class="toast-hash" id="toastHash"></div>
     </div>
 </div>
 
-<script type="module">
-    import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+<div class="shell">
 
-    // ============================================================
-    //  ⚠️  CẬP NHẬT ĐỊA CHỈ CONTRACT SAU KHI DEPLOY  ⚠️
-    //  Chạy: npx hardhat run scripts/deploy.js --network localhost
-    //  Rồi copy địa chỉ in ra Terminal và dán vào đây.
-    // ============================================================
-    const TOKEN_ADDRESS    = "0x0165878a594ca255338adfa4d48449f69242eb8f";   // MockERC20 (JPYC)
-    const CONTRACT_ADDRESS = "0xa513e6e4b8f2a923d98304ec87f64353c4d5c853";   // AlooSimPayment
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">📱</div>
+            <div class="logo-text">
+                <strong>Aloo SIM</strong>
+                <span>Invisible Wallet · Web2.5</span>
+            </div>
+        </div>
+        <div class="online-badge">
+            <div class="online-dot"></div>
+            Hardhat Node
+        </div>
+    </div>
 
-    // Webhook endpoint (Python FastAPI backend)
-    const WEBHOOK_URL = "http://localhost:8000/webhook/blockchain";
+    <!-- Main Card -->
+    <div class="card">
 
-    // ABI tối giản
-    const tokenAbi = [
-        "function approve(address spender, uint256 amount) external returns (bool)",
-        "function balanceOf(address account) external view returns (uint256)",
-        "function symbol() external view returns (string)"
-    ];
-    const alooAbi = [
-        "function payForSim(string memory _orderId, uint256 _amount) external"
-    ];
+        <!-- Wallet Widget -->
+        <div class="wallet-card">
+            <div class="wallet-email">
+                <span>👤</span>
+                <input type="email" id="emailInput" value="nguyenvana@gmail.com" placeholder="email@example.com">
+            </div>
+            <div class="balance-label">Số dư Ví Ẩn</div>
+            <div class="balance-amount">
+                <span id="balAmount">0</span>
+                <span>JPYC</span>
+            </div>
+            <div class="balance-vnd" id="balVnd">≈ 0 VND</div>
+            <div class="invisible-addr" id="invisibleAddr"></div>
+        </div>
 
-    // State
-    let provider, signer, customerAddress;
+        <!-- SIM Product -->
+        <div class="section-title">Sản phẩm SIM</div>
+        <div class="sim-product selected">
+            <div class="sim-flag">🇯🇵</div>
+            <div class="sim-info">
+                <div class="sim-name">SIM Du Lịch Nhật Bản</div>
+                <div class="sim-detail">7 ngày · 5GB · Softbank 4G/LTE</div>
+            </div>
+            <div class="sim-price">
+                <div class="sim-price-jpyc">1,000 JPYC</div>
+                <div class="sim-price-vnd">≈ 167,000 ₫</div>
+            </div>
+        </div>
 
-    // DOM Elements
-    const btnConnect = document.getElementById('btnConnect');
-    const btnApprove = document.getElementById('btnApprove');
-    const btnPay     = document.getElementById('btnPay');
-    const logBody    = document.getElementById('logBody');
+        <!-- Action Buttons -->
+        <div class="section-title">Thao tác</div>
+        <div class="btn-row">
+            <button class="btn btn-topup" id="btnTopup">
+                <div class="spinner"></div>
+                <span class="btn-text">💳 Nạp 500k VND</span>
+            </button>
+            <button class="btn btn-buy" id="btnBuy">
+                <div class="spinner"></div>
+                <span class="btn-text">🛒 Mua SIM (1,000 JPYC)</span>
+            </button>
+        </div>
 
-    // ── Helpers ──────────────────────────────────────────
-    function getTimestamp() {
-        const d = new Date();
-        return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        <div style="height: 14px;"></div>
+
+        <!-- Log -->
+        <div class="log-wrap">
+            <div class="log-titlebar">
+                <div class="dot" style="background:#f87171"></div>
+                <div class="dot" style="background:#fbbf24"></div>
+                <div class="dot" style="background:#34d399"></div>
+                <span>Audit Log — Blockchain Events</span>
+            </div>
+            <div class="log-body" id="logBody">
+                <div class="le sep">─────────────────────────────────────</div>
+                <div class="le info"><span class="ts">[System]</span> Aloo SIM Invisible Wallet v2.0 khởi động.</div>
+                <div class="le info"><span class="ts">[System]</span> Nhập email → Nạp tiền → Mua SIM.</div>
+                <div class="le sep">─────────────────────────────────────</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">Powered by <strong>FastAPI</strong> · <strong>web3.py</strong> · <strong>Solidity</strong> — Aloo Telecom &copy; 2026</div>
+</div>
+
+<script>
+    // ── Config ──────────────────────────────────────────────────────────
+    const API = "http://localhost:8000";
+    const JPYC_TO_VND = 500000 / 3000;   // 1 JPYC ≈ 166.7 VND
+
+    let currentBalance = 0;
+    let orderCounter   = Date.now().toString().slice(-4);
+
+    // ── DOM shortcuts ────────────────────────────────────────────────────
+    const emailInput   = document.getElementById('emailInput');
+    const balAmount    = document.getElementById('balAmount');
+    const balVnd       = document.getElementById('balVnd');
+    const invisAddr    = document.getElementById('invisibleAddr');
+    const logBody      = document.getElementById('logBody');
+    const btnTopup     = document.getElementById('btnTopup');
+    const btnBuy       = document.getElementById('btnBuy');
+    const toast        = document.getElementById('toast');
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function ts() {
+        return new Date().toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     }
 
     function log(msg, type = 'info') {
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
-        entry.innerHTML = `<span class="timestamp">[${getTimestamp()}]</span> ${msg}`;
-        logBody.appendChild(entry);
+        const div = document.createElement('div');
+        div.className = `le ${type}`;
+        div.innerHTML = `<span class="ts">[${ts()}]</span> ${msg}`;
+        logBody.appendChild(div);
         logBody.scrollTop = logBody.scrollHeight;
     }
 
-    function setStep(stepNum) {
-        for (let i = 1; i <= 3; i++) {
-            const indicator = document.getElementById(`step${i}`);
-            const circle = indicator.querySelector('.step-circle');
-            if (i < stepNum) {
-                indicator.className = 'step-indicator done';
-                circle.className = 'step-circle done';
-                circle.textContent = '✓';
-            } else if (i === stepNum) {
-                indicator.className = 'step-indicator active';
-                circle.className = 'step-circle active';
-                circle.textContent = i;
+    function logSep() {
+        const div = document.createElement('div');
+        div.className = 'le sep';
+        div.textContent = '─────────────────────────────────────';
+        logBody.appendChild(div);
+    }
+
+    function setLoading(btn, on) {
+        if (on) { btn.classList.add('loading'); btn.disabled = true; }
+        else    { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    function updateBalance(jpyc) {
+        currentBalance = jpyc;
+        balAmount.textContent = jpyc.toLocaleString('vi-VN');
+        const vnd = Math.round(jpyc * JPYC_TO_VND);
+        balVnd.textContent = `≈ ${vnd.toLocaleString('vi-VN')} VND`;
+    }
+
+    function showToast(icon, title, msg, hash = '') {
+        document.getElementById('toastIcon').textContent  = icon;
+        document.getElementById('toastTitle').textContent = title;
+        document.getElementById('toastMsg').textContent   = msg;
+        document.getElementById('toastHash').textContent  = hash ? `TxHash: ${hash.slice(0,20)}...` : '';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── TOPUP ─────────────────────────────────────────────────────────────
+    btnTopup.onclick = async () => {
+        const email = emailInput.value.trim();
+        if (!email) { log("Vui lòng nhập email trước!", "err"); return; }
+
+        setLoading(btnTopup, true);
+        logSep();
+        log(`📥 Bắt đầu nạp tiền — Email: <strong>${email}</strong>`, "step");
+        log("💳 Giả lập: Ngân hàng xác nhận chuyển khoản 500,000 VND...", "info");
+        await sleep(900);
+        log("✅ Ngân hàng OK. Backend đang quy đổi VND → JPYC...", "ok");
+
+        try {
+            const resp = await fetch(`${API}/api/topup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, vnd_amount: 500000 })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.status === "success") {
+                updateBalance(data.new_balance);
+
+                // Hiện địa chỉ Ví Ẩn
+                invisAddr.textContent = `🔑 Ví Ẩn: ${data.invisible_wallet}`;
+                invisAddr.classList.add('show');
+
+                log(`🔑 Ví Ẩn: <strong>${data.invisible_wallet.slice(0,10)}...${data.invisible_wallet.slice(-6)}</strong>`, "ok");
+                log(`📈 Đã nạp <strong>${data.jpyc_received.toLocaleString()} JPYC</strong> vào Ví Ẩn. Tổng: <strong>${data.new_balance.toLocaleString()} JPYC</strong>`, "ok");
+                log(`⛓️ Bút toán on-chain:`, "hash");
+                log(`   TxHash: <strong>${data.txHash}</strong>`, "hash");
+
+                showToast('💰', 'Nạp tiền thành công!',
+                    `+${data.jpyc_received.toLocaleString()} JPYC · Số dư: ${data.new_balance.toLocaleString()} JPYC`,
+                    data.txHash);
             } else {
-                indicator.className = 'step-indicator';
-                circle.className = 'step-circle';
-                circle.textContent = i;
+                log("❌ " + (data.detail || "Lỗi không xác định"), "err");
             }
+        } catch (err) {
+            log("❌ Không kết nối được Backend (port 8000): " + err.message, "err");
+        } finally {
+            setLoading(btnTopup, false);
         }
-        // Lines
-        document.getElementById('line1').className = stepNum > 1 ? 'step-line done' : 'step-line';
-        document.getElementById('line2').className = stepNum > 2 ? 'step-line done' : 'step-line';
-    }
+    };
 
-    function setLoading(btn, loading) {
-        if (loading) {
-            btn.classList.add('loading');
-            btn.disabled = true;
-        } else {
-            btn.classList.remove('loading');
-        }
-    }
-
-    // ── 1. Connect Wallet ───────────────────────────────
-    btnConnect.onclick = async () => {
-        if (window.ethereum == null) {
-            log("MetaMask chưa được cài đặt! Vui lòng cài extension MetaMask.", "error");
+    // ── BUY SIM ───────────────────────────────────────────────────────────
+    btnBuy.onclick = async () => {
+        const email = emailInput.value.trim();
+        if (!email) { log("Vui lòng nhập email trước!", "err"); return; }
+        if (currentBalance < 1000) {
+            log(`❌ Số dư không đủ. Hiện có ${currentBalance} JPYC, cần 1,000 JPYC.`, "err");
             return;
         }
-        setLoading(btnConnect, true);
+
+        const orderId = `ALOO_JP_${orderCounter++}`;
+        setLoading(btnBuy, true);
+        logSep();
+        log(`🛒 Bắt đầu mua SIM — Order: <strong>${orderId}</strong>`, "step");
+        log("⚙️ Backend đang kích hoạt Ví Ẩn...", "info");
+        await sleep(500);
+        log("⛽ [PayMaster] Bơm ETH vào Ví Ẩn để trả phí Gas...", "step");
+        await sleep(300);
+        log("✅ [Invisible Wallet] Ký giao dịch Approve JPYC...", "ok");
+        await sleep(300);
+        log("✅ [Invisible Wallet] Ký giao dịch payForSim()...", "ok");
+
         try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            customerAddress = await signer.getAddress();
+            const resp = await fetch(`${API}/api/buy-sim`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, orderId, jpyc_amount: 1000 })
+            });
 
-            const short = customerAddress.substring(0, 6) + "..." + customerAddress.substring(38);
-            document.getElementById('walletAddress').textContent = short;
-            log(`Đã kết nối ví: <strong>${short}</strong>`, "success");
+            const data = await resp.json();
 
-            // Show balance
-            try {
-                const tokenContract = new ethers.Contract(TOKEN_ADDRESS, tokenAbi, provider);
-                const balance = await tokenContract.balanceOf(customerAddress);
-                const formatted = ethers.formatUnits(balance, 18);
-                const sym = await tokenContract.symbol();
-                document.getElementById('walletBalance').textContent = `${Number(formatted).toLocaleString()} ${sym}`;
-                document.getElementById('balanceRow').style.display = 'flex';
-                log(`Số dư: ${Number(formatted).toLocaleString()} ${sym}`, "info");
-            } catch (e) {
-                log("Không thể đọc số dư token. Kiểm tra địa chỉ TOKEN_ADDRESS.", "warn");
+            if (resp.ok && data.status === "success") {
+                updateBalance(data.remaining);
+
+                log(`🎉 Mua SIM thành công! Số dư còn: <strong>${data.remaining.toLocaleString()} JPYC</strong>`, "ok");
+                log(`📑 Bút toán doanh thu on-chain:`, "hash");
+                log(`   TxHash: <strong>${data.txHash}</strong>`, "hash");
+                log(`   → Dòng tiền: Ví Ẩn KH → Smart Contract (minh bạch 100%)`, "info");
+
+                showToast('🎉', 'Mua SIM thành công!',
+                    `SIM Nhật 7 ngày · Order ${orderId}`,
+                    data.txHash);
+            } else {
+                log("❌ " + (data.detail || "Lỗi không xác định"), "err");
             }
-
-            btnConnect.disabled = true;
-            btnApprove.disabled = false;
-            setStep(2);
-        } catch (error) {
-            log("Lỗi kết nối: " + error.message, "error");
+        } catch (err) {
+            log("❌ Không kết nối được Backend: " + err.message, "err");
         } finally {
-            setLoading(btnConnect, false);
-            btnConnect.disabled = true;
+            setLoading(btnBuy, false);
         }
     };
 
-    // ── 2. Approve ──────────────────────────────────────
-    btnApprove.onclick = async () => {
-        setLoading(btnApprove, true);
+    // ── Load balance on startup ───────────────────────────────────────────
+    (async () => {
         try {
-            log("Đang gửi yêu cầu Approve cho JPYC...", "info");
-            const tokenContract = new ethers.Contract(TOKEN_ADDRESS, tokenAbi, signer);
-            const amount = ethers.parseUnits("3000", 18);
-
-            const tx = await tokenContract.approve(CONTRACT_ADDRESS, amount);
-            log("Giao dịch Approve đã gửi. Chờ xác nhận...", "warn");
-            await tx.wait();
-
-            log("Cấp quyền thành công! ✅", "success");
-            btnApprove.disabled = true;
-            btnPay.disabled = false;
-            setStep(3);
-        } catch (error) {
-            log("Lỗi Approve: " + error.message, "error");
-            btnApprove.disabled = false;
-        } finally {
-            setLoading(btnApprove, false);
-        }
-    };
-
-    // ── 3. Pay ──────────────────────────────────────────
-    btnPay.onclick = async () => {
-        setLoading(btnPay, true);
-        try {
-            log("Đang xử lý thanh toán qua Smart Contract...", "info");
-            const alooContract = new ethers.Contract(CONTRACT_ADDRESS, alooAbi, signer);
-            const amount = ethers.parseUnits("3000", 18);
-            const orderId = document.getElementById('orderId').textContent;
-
-            const tx = await alooContract.payForSim(orderId, amount);
-            log(`TxHash: <strong>${tx.hash}</strong>`, "hash");
-            log("Giao dịch đã gửi. Đang chờ xác nhận trên Blockchain...", "warn");
-            const receipt = await tx.wait();
-
-            log("🎉 Thanh toán thành công! Block #" + receipt.blockNumber, "success");
-            btnPay.disabled = true;
-
-            // Update balance
-            try {
-                const tokenContract = new ethers.Contract(TOKEN_ADDRESS, tokenAbi, provider);
-                const balance = await tokenContract.balanceOf(customerAddress);
-                const formatted = ethers.formatUnits(balance, 18);
-                const sym = await tokenContract.symbol();
-                document.getElementById('walletBalance').textContent = `${Number(formatted).toLocaleString()} ${sym}`;
-            } catch(_) {}
-
-            // Mark all steps done
-            setStep(4);
-
-            // Show success overlay
-            document.getElementById('successOverlay').classList.add('show');
-
-            // ── Fire Webhook to Backend ────────────────
-            log("Đang gửi Webhook tới Backend...", "webhook");
-            try {
-                const webhookPayload = {
-                    event: "PaymentReceived",
-                    txHash: tx.hash,
-                    orderId: orderId,
-                    customer: customerAddress,
-                    amount: "3000",
-                    token: "JPYC",
-                    blockNumber: receipt.blockNumber,
-                    timestamp: new Date().toISOString()
-                };
-
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(webhookPayload)
-                });
-
-                if (response.ok) {
-                    log("✅ Webhook gửi thành công! Backend đã nhận được thông báo.", "success");
-                } else {
-                    log(`⚠️ Webhook trả về status ${response.status}. Kiểm tra backend.`, "warn");
+            const resp = await fetch(`${API}/api/balance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value })
+            });
+            if (resp.ok) {
+                const d = await resp.json();
+                updateBalance(d.balance);
+                if (d.address) {
+                    invisAddr.textContent = `🔑 Ví Ẩn: ${d.address}`;
+                    invisAddr.classList.add('show');
                 }
-            } catch (webhookErr) {
-                log("⚠️ Không thể gửi Webhook (Backend có thể chưa chạy). Giao dịch vẫn thành công trên Blockchain.", "warn");
             }
-
-        } catch (error) {
-            log("Lỗi Thanh toán: " + error.message, "error");
-            btnPay.disabled = false;
-        } finally {
-            setLoading(btnPay, false);
-        }
-    };
+        } catch (_) {}
+    })();
 </script>
 </body>
 </html>
