@@ -103,7 +103,10 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
             color: var(--accent);
             padding: 10px 18px; border-radius: 20px;
-            font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px;
+            display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800;
+        }
+        .balance-jpyc-sub {
+            font-size: 12px; font-weight: 600; color: var(--text-3); margin-left: 4px; opacity: 0.8;
         }
 
         /* --- MAIN CONTENT --- */
@@ -125,30 +128,45 @@
             border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px;
         }
 
-        /* --- LEFT WALL: TOPUP --- */
         .section-label { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; }
         
-        .topup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .topup-btn {
-            background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text-2);
-            padding: 12px; border-radius: var(--radius-sm); cursor: pointer;
-            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        /* TWO WAY EXCHANGE CALCULATOR */
+        .exchange-calc {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;
+            display: flex; flex-direction: column; gap: 12px; position: relative;
         }
-        .topup-btn:hover { background: var(--surface-hover); color: var(--text-1); }
-        .topup-btn.active { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: var(--primary); }
+        .input-group {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .input-group label {
+            font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .input-wrapper {
+            display: flex; align-items: center; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 0 12px; transition: border 0.2s;
+        }
+        .input-wrapper:focus-within { border-color: var(--primary); }
+        .input-wrapper span { font-size: 14px; font-weight: 700; color: var(--text-2); user-select: none; width: 45px; }
+        .input-wrapper input {
+            flex: 1; background: transparent; border: none; color: var(--text-1);
+            padding: 12px 0; font-size: 18px; font-weight: 700; font-family: inherit; outline: none; text-align: right;
+        }
+        .swap-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 32px; height: 32px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: var(--text-2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 2;
+        }
 
-        .custom-input {
-            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border);
-            color: var(--text-1); padding: 12px 16px; border-radius: var(--radius-sm);
-            margin-bottom: 15px; font-size: 14px; transition: border 0.3s;
+        .topup-presets { display: flex; gap: 8px; margin-bottom: 20px; }
+        .preset-btn {
+            flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            color: var(--text-2); padding: 8px 0; border-radius: var(--radius-sm);
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
-        .custom-input:focus { border-color: var(--primary); outline: none; }
-
-        .preview-box {
-            background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); padding: 12px;
-            text-align: center; font-size: 13px; color: var(--text-3); margin-bottom: 20px; border: 1px solid var(--border);
-        }
-        .preview-box b { color: var(--primary); font-size: 18px; font-weight: 800; display: inline-block; margin: 0 4px; }
+        .preset-btn:hover { background: var(--surface-hover); color: var(--text-1); }
 
         .pay-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; flex-grow: 1; }
         .pay-method {
@@ -190,7 +208,10 @@
         
         .product-name { font-weight: 700; font-size: 15px; color: var(--text-1); margin-bottom: 6px; }
         .product-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; margin-bottom: 15px; }
-        .product-price { font-weight: 800; font-size: 16px; color: var(--warning); text-align: right; margin-top: auto; }
+        
+        .price-tag { margin-top: auto; display: flex; flex-direction: column; align-items: flex-end; }
+        .price-vnd { font-weight: 800; font-size: 18px; color: var(--warning); }
+        .price-jpyc { font-size: 11px; font-weight: 600; color: var(--text-3); margin-top: 2px; }
 
         .checkout-bar {
             background: rgba(0,0,0,0.2); border: 1px solid var(--border);
@@ -271,14 +292,15 @@
             <div class="logo-icon">📱</div>
             <div class="logo-text">
                 <h1>Aloo E-SIM</h1>
-                <span>Invisible Wallet · Web2.5</span>
+                <span>Ví Thanh Toán Quốc Tế</span>
             </div>
         </div>
         <div class="user-panel">
-            <input type="email" id="email" class="email-input" value="khachhang_demo@gmail.com" title="Email định danh Ví Ẩn" placeholder="Nhập email...">
-            <div class="balance-badge">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-                <span id="balanceDisplay">0</span> JPYC
+            <input type="email" id="email" class="email-input" value="khachhang_demo@gmail.com" title="Email định danh Ví" placeholder="Nhập email...">
+            <div class="balance-badge" title="Tài sản điện tử JPYC được bảo trợ On-chain">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                <span id="balanceDisplayVND">0 ₫</span>
+                <span class="balance-jpyc-sub" id="balanceDisplayJPYC">(0 JPYC)</span>
             </div>
         </div>
     </header>
@@ -286,23 +308,36 @@
     <div class="grid-layout">
         <!-- Left Column: Topup -->
         <div class="card">
-            <div class="card-header">💳 Nạp tiền vào Ví JPYC</div>
+            <div class="card-header">💳 Nạp tiền vào tài khoản</div>
             
-            <div class="section-label">1. Chọn thiết lập quy đổi:</div>
-            <div class="topup-grid">
-                <button class="topup-btn" onclick="selectTopup(100000, this)">100.000 ₫</button>
-                <button class="topup-btn" onclick="selectTopup(200000, this)">200.000 ₫</button>
-                <button class="topup-btn active" onclick="selectTopup(500000, this)">500.000 ₫</button>
-                <button class="topup-btn" onclick="selectTopup(1000000, this)">1.000.000 ₫</button>
-            </div>
+            <div class="section-label">1. Nhập hoặc quy đổi số tiền (2 Chiều):</div>
             
-            <input type="number" id="customAmount" class="custom-input" value="500000" placeholder="Nhập số tiền VNĐ khác...">
-            
-            <div class="preview-box">
-                Hệ thống Web3 đúc tự động: <b id="previewJPYC">3000</b> JPYC
+            <div class="exchange-calc">
+                <div class="input-group">
+                    <label>Tiền thanh toán (VNĐ)</label>
+                    <div class="input-wrapper">
+                        <span>VNĐ</span>
+                        <input type="number" id="inputVND" value="500000" oninput="calcToJPYC()">
+                    </div>
+                </div>
+                <div class="swap-icon">⇌</div>
+                <div class="input-group">
+                    <label>Tiền điện tử nhận được (JPYC)</label>
+                    <div class="input-wrapper">
+                        <span>JPYC</span>
+                        <input type="number" id="inputJPYC" value="3000" oninput="calcToVND()">
+                    </div>
+                </div>
             </div>
 
-            <div class="section-label">2. Cổng thanh toán (Simulated):</div>
+            <div class="topup-presets">
+                <button class="preset-btn" onclick="setPreset(100000)">100k</button>
+                <button class="preset-btn" onclick="setPreset(200000)">200k</button>
+                <button class="preset-btn" onclick="setPreset(500000)">500k</button>
+                <button class="preset-btn" onclick="setPreset(1000000)">1 Triệu</button>
+            </div>
+
+            <div class="section-label">2. Nguồn tiền (Mô phỏng):</div>
             <div class="pay-methods">
                 <div class="pay-method active" onclick="selectPayMethod('qr', 'VietQR', this)">
                     <span class="icon">📱</span>
@@ -326,7 +361,7 @@
         <!-- Right Column: Store -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
             <div class="card" style="flex-grow: 1;">
-                <div class="card-header">🛒 Cửa hàng SIM Quốc Tế</div>
+                <div class="card-header">🛒 Mua SIM Quốc Tế (Web3)</div>
                 
                 <div class="product-grid">
                     <div class="product-item" onclick="selectProduct('ALOO_JP_7D', 1500, this)">
@@ -334,28 +369,40 @@
                             <div class="product-name">🇯🇵 SIM Nhật 7 Ngày</div>
                             <div class="product-desc">10GB Data Tốc độ cao. Phù hợp du lịch ngắn ngày.</div>
                         </div>
-                        <div class="product-price">1,500 JPYC</div>
+                        <div class="price-tag">
+                            <span class="price-vnd">250,000 ₫</span>
+                            <span class="price-jpyc">(1,500 JPYC)</span>
+                        </div>
                     </div>
                     <div class="product-item selected" onclick="selectProduct('ALOO_JP_15D', 2800, this)">
                         <div>
                             <div class="product-name">🇯🇵 SIM Nhật 15 Ngày</div>
                             <div class="product-desc">20GB Data. Có số điện thoại thực đăng ký dịch vụ.</div>
                         </div>
-                        <div class="product-price">2,800 JPYC</div>
+                        <div class="price-tag">
+                            <span class="price-vnd">466,000 ₫</span>
+                            <span class="price-jpyc">(2,800 JPYC)</span>
+                        </div>
                     </div>
                     <div class="product-item" onclick="selectProduct('ALOO_JP_30D', 4500, this)">
                         <div>
                             <div class="product-name">🇯🇵 SIM Nhật 30 Ngày</div>
                             <div class="product-desc">Không giới hạn Data. Phù hợp công tác, du học sinh.</div>
                         </div>
-                        <div class="product-price">4,500 JPYC</div>
+                        <div class="price-tag">
+                            <span class="price-vnd">750,000 ₫</span>
+                            <span class="price-jpyc">(4,500 JPYC)</span>
+                        </div>
                     </div>
                     <div class="product-item" onclick="selectProduct('ALOO_GLOBAL', 8000, this)">
                         <div>
                             <div class="product-name">🌍 SIM Global 30 Ngày</div>
                             <div class="product-desc">Sử dụng tại 72 quốc gia (Nhật, Hàn, Mỹ, Châu Âu...).</div>
                         </div>
-                        <div class="product-price">8,000 JPYC</div>
+                        <div class="price-tag">
+                            <span class="price-vnd">1,333,000 ₫</span>
+                            <span class="price-jpyc">(8,000 JPYC)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -365,13 +412,13 @@
                         <b id="selectedProductName">ALOO_JP_15D</b>
                     </div>
                     <button id="btnBuy" class="btn-action btn-accent" style="width: auto; padding: 14px 30px;">
-                        Thanh toán · <span id="selectedProductPrice" style="margin-left:4px;">2800</span> JPYC
+                        Thanh toán · <span id="selectedProductPriceVND" style="margin-left:4px;">466,000 ₫</span>
                     </button>
                 </div>
             </div>
 
             <div class="logger" id="log">
-                <div class="log-entry"><span class="log-time">[System]</span> <span class="log-msg">Cổng giao dịch Web2.5 đã sẵn sàng...</span></div>
+                <div class="log-entry"><span class="log-time">[System]</span> <span class="log-msg">Cổng giao dịch Web2.5 (Hiển thị VNĐ - Xử lý JPYC) đã sẵn sàng...</span></div>
             </div>
         </div>
     </div>
@@ -391,15 +438,19 @@
 </div>
 
 <script>
-    let currentBalance = 0;
+    const RATE = 500000 / 3000; // 1 JPYC = 166.666 VND
+    let currentBalanceJPYC = 0;
+    
     let selectedOrder = "ALOO_JP_15D";
-    let selectedPrice = 2800;
+    let selectedPriceJPYC = 2800;
+    
     let currentMethodCode = "qr";
     let currentMethodName = "VietQR";
 
     const API = "http://localhost:8000";
     const logDiv = document.getElementById('log');
-    const inputAmount = document.getElementById('customAmount');
+    const inputVND = document.getElementById('inputVND');
+    const inputJPYC = document.getElementById('inputJPYC');
     const paymentModal = document.getElementById('paymentModal');
 
     function log(msg, type='msg') {
@@ -408,19 +459,29 @@
         logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    // Topup Logic
-    function selectTopup(amount, el) {
-        document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        inputAmount.value = amount;
-        updatePreview();
+    // Two-way calculator logic
+    function calcToJPYC() {
+        const vnd = parseInt(inputVND.value) || 0;
+        inputJPYC.value = Math.round(vnd / RATE);
+    }
+    
+    function calcToVND() {
+        const jpyc = parseInt(inputJPYC.value) || 0;
+        inputVND.value = Math.round(jpyc * RATE);
+    }
+    
+    function setPreset(vnd) {
+        inputVND.value = vnd;
+        calcToJPYC();
     }
 
-    inputAmount.addEventListener('input', updatePreview);
-    
-    function updatePreview() {
-        const vnd = parseInt(inputAmount.value) || 0;
-        document.getElementById('previewJPYC').innerText = Math.round(vnd * 3000 / 500000).toLocaleString('vi-VN');
+    // Refresh balance UI (VND Primary)
+    function refreshBalanceUI(jpyc) {
+        currentBalanceJPYC = jpyc;
+        const vnd = Math.round(jpyc * RATE);
+        
+        document.getElementById('balanceDisplayVND').innerText = vnd.toLocaleString('vi-VN') + " ₫";
+        document.getElementById('balanceDisplayJPYC').innerText = `(${jpyc.toLocaleString('vi-VN')} JPYC)`;
     }
 
     // Payment Methods Logic
@@ -432,18 +493,21 @@
     }
 
     // Shop Product Logic
-    function selectProduct(orderId, price, el) {
+    function selectProduct(orderId, priceJPYC, el) {
         document.querySelectorAll('.product-item').forEach(i => i.classList.remove('selected'));
         el.classList.add('selected');
+        
         selectedOrder = orderId;
-        selectedPrice = price;
+        selectedPriceJPYC = priceJPYC;
+        
+        const vnd = Math.round(priceJPYC * RATE);
         document.getElementById('selectedProductName').innerText = orderId;
-        document.getElementById('selectedProductPrice').innerText = price;
+        document.getElementById('selectedProductPriceVND').innerText = vnd.toLocaleString('vi-VN') + " ₫";
     }
 
     // Modal Triggers
     document.getElementById('btnOpenTopupModal').onclick = () => {
-        const vnd = parseInt(inputAmount.value);
+        const vnd = parseInt(inputVND.value);
         if(!vnd || vnd < 10000) return alert("Số tiền nạp tối thiểu 10.000đ");
 
         document.getElementById('modalAmount').innerText = vnd.toLocaleString('vi-VN') + " ₫";
@@ -455,7 +519,7 @@
                 <div class="qr-placeholder">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" width="160" style="opacity:0.8;">
                 </div>
-                <p style="font-size: 13px; color: var(--text-2); margin-bottom:20px;">Mở ứng dụng ngân hàng quét mã QR trên</p>
+                <p style="font-size: 13px; color: var(--text-2); margin-bottom:20px;">Mở ứng dụng ngân hàng quét mã để thanh toán <b>${vnd.toLocaleString('vi-VN')} ₫</b></p>
             `;
         } else {
             document.getElementById('modalTitle').innerText = "Thanh toán Thẻ Quốc Tế";
@@ -482,13 +546,15 @@
     // API Topup
     document.getElementById('btnConfirmPayment').onclick = async () => {
         const email = document.getElementById('email').value;
-        const vndAmount = parseInt(inputAmount.value);
-        const btn = document.getElementById('btnConfirmPayment');
+        const vndAmount = parseInt(inputVND.value);
+        const jpycAmountExpected = parseInt(inputJPYC.value);
         
+        const btn = document.getElementById('btnConfirmPayment');
         btn.innerText = "Đang chuyển JPYC on-chain...";
         btn.disabled = true;
 
-        log(`🟡 Khách hàng đã thanh toán qua ${currentMethodName}. Đang kích hoạt Custodial Relayer...`, 'warn');
+        log(`🟡 Cổng Ngân Hàng: Đã nhận ${vndAmount.toLocaleString('vi-VN')} ₫ qua ${currentMethodName}.`, 'warn');
+        log(`🟡 Kích hoạt Ví Tổng: Tự động đúc ${jpycAmountExpected.toLocaleString('vi-VN')} điện tử (JPYC)...`, 'warn');
         
         try {
             const res = await fetch(`${API}/api/topup`, {
@@ -499,9 +565,8 @@
             const data = await res.json();
             
             if(data.status === "success") {
-                currentBalance = data.new_balance;
-                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
-                log(`🟢 Web3 Success: Đã thay mặt khách chuyển <b>${data.jpyc_received} JPYC</b> vào Ví Ẩn.`, 'ok');
+                refreshBalanceUI(data.new_balance);
+                log(`🟢 Blockchain: Đã cấp quyền <b>${data.jpyc_received} JPYC</b> vào Ví Ẩn Web3.`, 'ok');
                 log(`🔗 TxHash: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="log-tx">${data.txHash.slice(0,30)}...</a>`, 'msg');
                 closeModal();
             } else {
@@ -509,7 +574,7 @@
                 closeModal();
             }
         } catch (e) { 
-            log("🔴 Mất kết nối tới API Backend (port 8000)!", 'err'); 
+            log("🔴 Mất kết nối tới API Backend (port 8000)! Vui lòng bật Terminal chạy Python.", 'err'); 
             closeModal();
         }
     };
@@ -517,43 +582,45 @@
     // API Buy SIM
     document.getElementById('btnBuy').onclick = async () => {
         const email = document.getElementById('email').value;
-        if(currentBalance < selectedPrice) {
-            alert(`Số dư không đủ! Cần ${selectedPrice} JPYC. Vui lòng nạp thêm tiền qua thẻ hoặc QR.`);
+        if(currentBalanceJPYC < selectedPriceJPYC) {
+            const missingJPYC = selectedPriceJPYC - currentBalanceJPYC;
+            const missingVND = Math.round(missingJPYC * RATE);
+            alert(`Tài khoản không đủ tiền!\nBạn thiếu khoảng ${missingVND.toLocaleString('vi-VN')} ₫ (${missingJPYC} JPYC).`);
+            setPreset(missingVND);
             return;
         }
         
         const btn = document.getElementById('btnBuy');
-        btn.innerHTML = "Đang ký On-chain...";
+        const oldText = btn.innerHTML;
+        btn.innerHTML = "Đang ký on-chain...";
         btn.disabled = true;
 
-        log(`🟡 Backend đang đóng vai trò Ví Ẩn, gọi Smart Contract cho ID <b>${selectedOrder}</b>...`, 'warn');
+        log(`🟡 Tài khoản khách trừ <b>${(selectedPriceJPYC * RATE).toLocaleString('vi-VN')} ₫</b>.`, 'warn');
+        log(`🟡 Backend đang dùng cấu trúc Ví Ẩn chuyển <b>${selectedPriceJPYC} JPYC</b> vào Smart Contract...`, 'warn');
         
         try {
             const res = await fetch(`${API}/api/buy-sim`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, orderId: selectedOrder, jpyc_amount: selectedPrice })
+                body: JSON.stringify({ email: email, orderId: selectedOrder, jpyc_amount: selectedPriceJPYC })
             });
             const data = await res.json();
             
             if(data.status === "success") {
-                currentBalance = data.remaining;
-                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
-                log(`🟢 Mua SIM thành công! Bút toán Smart Contract đã ghi nhận.`, 'ok');
-                log(`🔗 Smart Contract Tx: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="log-tx">${data.txHash.slice(0,30)}...</a>`, 'msg');
+                refreshBalanceUI(data.remaining);
+                log(`🟢 Hoàn tất! Smart Contract xác nhận khách mua SIM thành công.`, 'ok');
+                log(`🔗 TxHash: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="log-tx">${data.txHash.slice(0,30)}...</a>`, 'msg');
             } else {
-                log(`🔴 Lỗi Smart Contract: ${data.detail}`, 'err');
+                log(`🔴 Lỗi Blockchain: ${data.detail}`, 'err');
             }
         } catch (e) { 
-            log("🔴 Lỗi Web3 Backend: Không call được Smart Contract!", 'err'); 
+            log("🔴 Lỗi kết nối API Backend!", 'err'); 
         }
         
-        btn.innerHTML = `Thanh toán · <span style="margin-left:4px;">${selectedPrice}</span> JPYC`;
+        btn.innerHTML = oldText;
         btn.disabled = false;
     };
 
-    updatePreview();
-    
     // Auto load balance
     (async () => {
         try {
@@ -564,8 +631,7 @@
             });
             if(res.ok) {
                 const data = await res.json();
-                currentBalance = data.balance;
-                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
+                refreshBalanceUI(data.balance);
             }
         } catch (e) {}
     })();
