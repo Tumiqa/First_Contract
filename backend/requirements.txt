@@ -2,3 +2,4 @@ fastapi
 uvicorn
 web3
 pydantic
+python-dotenv
