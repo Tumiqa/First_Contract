@@ -74,6 +74,11 @@ ALOO_ABI = [
         ],
         "name": "payForSim", "outputs": [],
         "stateMutability": "nonpayable", "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "withdraw", "outputs": [],
+        "stateMutability": "nonpayable", "type": "function"
     }
 ]
 
@@ -288,6 +293,45 @@ async def get_balance(req: BalanceRequest):
 async def blockchain_webhook(payload: dict):
     print(f"\n🔔 Webhook | Order: {payload.get('orderId')} | TxHash: {payload.get('txHash')}")
     return {"status": "received"}
+
+# ============================================================
+#  API 3: ADMIN RÚT DOANH THU (OFF-RAMP PIPELINE)
+# ============================================================
+@app.post("/api/admin/withdraw")
+async def withdraw_revenue():
+    if not web3.is_connected():
+        raise HTTPException(status_code=503, detail="Không kết nối được Hardhat Node")
+    try:
+        print("\n[ADMIN - CHỐT CA] Đang gom toàn bộ doanh thu JPYC từ Két sắt Smart Contract...")
+        # Lấy nonce của Ví Tổng
+        nonce = web3.eth.get_transaction_count(MASTER_ADDRESS, 'pending')
+        
+        # Build transaction kích hoạt hàm withdraw() của hợp đồng AlooSimPayment
+        tx = aloo_contract.functions.withdraw().build_transaction({
+            'chainId': 11155111, # Sepolia
+            'gas': 100_000,
+            'gasPrice': web3.eth.gas_price,
+            'nonce': nonce
+        })
+        
+        # Ký và gửi transaction
+        signed_tx = web3.eth.account.sign_transaction(tx, MASTER_PK)
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        
+        # Đợi transaction được xác nhận
+        receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        if receipt.status != 1:
+            raise Exception("Lệnh Rút Doanh Thu bị Revert bởi mạng Blockchain!")
+            
+        print("🟢 GOM QUỸ THÀNH CÔNG!")
+        return {
+            "status": "success", 
+            "message": "Đã rút toàn bộ doanh thu về Ví Tổng thành công!", 
+            "txHash": web3.to_hex(tx_hash)
+        }
+    except Exception as e:
+        print("🔴 Lỗi Rút Doanh Thu:", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():
