@@ -3,153 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aloo SIM - Sàn Thương Mại Web3</title>
+    <title>Aloo SIM - Ví Điện Tử Web3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; }
-        .header { background: #fff; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-        .header h1 { color: #ff5722; font-size: 24px; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-info input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; outline: none; width: 220px; }
-        .wallet-badge { background: #e8f5e9; color: #2e7d32; padding: 8px 15px; border-radius: 20px; font-weight: bold; border: 1px solid #c8e6c9; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
-        .container { max-width: 1100px; margin: 30px auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; padding: 0 20px; }
-        .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card h3 { margin-bottom: 20px; color: #2c3e50; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
+        :root {
+            --bg: #0b0f19;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-1: #f8fafc;
+            --text-2: #94a3b8;
+            --text-3: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-1);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.1), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(245, 158, 11, 0.05), transparent 40%);
+            z-index: -1;
+            animation: pulse-glow 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        .logo-text h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 2px; }
+        .logo-text span { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+        .user-panel { display: flex; align-items: center; gap: 15px; }
+        .email-input {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            color: var(--text-1); padding: 10px 16px; border-radius: 8px;
+            font-family: inherit; font-size: 14px; width: 220px; transition: border 0.3s;
+        }
+        .email-input:focus { border-color: var(--primary); outline: none; }
         
-        /* Nạp tiền - Cột trái */
+        .balance-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent);
+            padding: 10px 18px; border-radius: 20px;
+            font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .grid-layout { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; }
+
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column;
+        }
+        
+        .card-header {
+            font-size: 14px; font-weight: 700; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px;
+        }
+
+        /* --- LEFT WALL: TOPUP --- */
+        .section-label { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; }
+        
         .topup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .topup-btn { padding: 10px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 600; color: #555; }
-        .topup-btn:hover { border-color: #ff5722; color: #ff5722; }
-        .topup-btn.active { background: #ff5722; color: #fff; border-color: #ff5722; }
-        .custom-topup { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; font-size: 16px; outline: none; }
+        .topup-btn {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text-2);
+            padding: 12px; border-radius: var(--radius-sm); cursor: pointer;
+            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        }
+        .topup-btn:hover { background: var(--surface-hover); color: var(--text-1); }
+        .topup-btn.active { background: rgba(59, 130, 246, 0.15); border-color: var(--primary); color: var(--primary); }
+
+        .custom-input {
+            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            color: var(--text-1); padding: 12px 16px; border-radius: var(--radius-sm);
+            margin-bottom: 15px; font-size: 14px; transition: border 0.3s;
+        }
+        .custom-input:focus { border-color: var(--primary); outline: none; }
+
+        .preview-box {
+            background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); padding: 12px;
+            text-align: center; font-size: 13px; color: var(--text-3); margin-bottom: 20px; border: 1px solid var(--border);
+        }
+        .preview-box b { color: var(--primary); font-size: 18px; font-weight: 800; display: inline-block; margin: 0 4px; }
+
+        .pay-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; flex-grow: 1; }
+        .pay-method {
+            display: flex; align-items: center; gap: 15px;
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            padding: 14px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;
+        }
+        .pay-method:hover { background: var(--surface-hover); }
+        .pay-method.active { background: rgba(59, 130, 246, 0.1); border-color: var(--primary); }
+        .pay-method .icon { font-size: 22px; }
+        .pay-method span { font-size: 14px; font-weight: 600; color: var(--text-1); }
+
+        .btn-action {
+            width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm);
+            font-weight: 700; font-size: 14px; font-family: inherit; cursor: pointer;
+            color: white; transition: all 0.2s; position: relative; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-action::after {
+            content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent); pointer-events: none;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #1d4ed8); box-shadow: 0 4px 15px rgba(37,99,235,0.3); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); }
         
-        /* Phương thức thanh toán */
-        .pay-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .pay-method { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .pay-method:hover { background: #f9f9f9; border-color: #bbb; }
-        .pay-method.active { border: 2px solid #2196f3; background: #e3f2fd; }
-        .pay-method img { width: 30px; height: 30px; object-fit: contain; }
-        .pay-method span { font-weight: 600; color: #444; }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), #047857); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .btn-accent:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
 
-        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; color: #fff; }
-        .btn-naptien { background: #2196f3; }
-        .btn-naptien:hover { background: #1976d2; }
-        .btn-mua { background: #ff5722; }
-        .btn-mua:hover { background: #e64a19; }
+        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(50%); }
 
-        /* Cột Sản phẩm */
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .product-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-item:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .product-item.selected { border: 2px solid #ff5722; background: #fff9f7; }
-        .product-name { font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #333; }
-        .product-desc { font-size: 13px; color: #777; margin-bottom: 15px; line-height: 1.4; }
-        .product-price { color: #ff5722; font-weight: bold; font-size: 18px; text-align: right; }
-
-        /* Logs */
-        .logs-container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
-        #log { font-family: monospace; background: #1e1e2f; color: #4ade80; padding: 15px; border-radius: 8px; height: 200px; overflow-y: auto; font-size: 13px; line-height: 1.5; }
-        .tx-link { color: #60a5fa; text-decoration: none; }
+        /* --- RIGHT WALL: PRODUCTS --- */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .product-item {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            padding: 16px; border-radius: var(--radius-md); cursor: pointer;
+            transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .product-item:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); background: var(--surface-hover); }
+        .product-item.selected { border-color: var(--warning); background: rgba(245, 158, 11, 0.05); }
         
-        /* Modal Popup Giả lập Thanh toán */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .qr-placeholder { width: 200px; height: 200px; background: #eee; margin: 20px auto; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #888; font-weight: bold; }
-        .card-input { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; text-align: left; }
+        .product-name { font-weight: 700; font-size: 15px; color: var(--text-1); margin-bottom: 6px; }
+        .product-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; margin-bottom: 15px; }
+        .product-price { font-weight: 800; font-size: 16px; color: var(--warning); text-align: right; margin-top: auto; }
+
+        .checkout-bar {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px 20px;
+            display: flex; justify-content: space-between; align-items: center; margin-top: auto;
+        }
+        .checkout-info { display: flex; flex-direction: column; gap: 4px; }
+        .checkout-info span { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; }
+        .checkout-info b { font-size: 16px; color: var(--text-1); }
+
+        /* --- LOGS --- */
+        .logger {
+            background: var(--surface); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 20px 24px; height: 180px; overflow-y: auto;
+            font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px; line-height: 1.6;
+        }
+        .logger::-webkit-scrollbar { width: 6px; }
+        .logger::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 6px; }
+        
+        .log-entry { margin-bottom: 6px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .log-time { color: var(--text-3); margin-right: 8px; font-size: 11px; }
+        .log-msg { color: var(--text-2); }
+        .log-ok { color: var(--accent); }
+        .log-warn { color: var(--warning); }
+        .log-err { color: var(--danger); }
+        .log-tx { color: #a78bfa; text-decoration: none; border-bottom: 1px dashed #a78bfa; transition: 0.2s; }
+        .log-tx:hover { color: #c4b5fd; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px); z-index: 100;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #111827; border: 1px solid var(--border);
+            border-radius: var(--radius-lg); width: 100%; max-width: 420px;
+            padding: 30px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.95) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--text-1); margin-bottom: 8px; }
+        .modal-amount { font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 25px; letter-spacing: -1px; }
+
+        .qr-placeholder {
+            width: 180px; height: 180px; margin: 0 auto 20px;
+            background: rgba(255,255,255,0.9); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+        .input-dark {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            color: var(--text-1); padding: 12px 14px; border-radius: 8px; font-family: monospace; font-size: 14px;
+        }
+        .input-dark:focus { outline: none; border-color: var(--primary); }
+
+        .btn-cancel {
+            background: none; border: none; color: var(--text-3); font-size: 13px; font-weight: 600;
+            margin-top: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-cancel:hover { color: var(--text-1); }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>📱 Aloo E-SIM</h1>
-    <div class="user-info">
-        <input type="email" id="email" value="khachhang_demo@gmail.com" title="Email định danh Ví Ẩn">
-        <div class="wallet-badge">Số dư: <span id="balanceDisplay">0</span> JPYC</div>
-    </div>
-</div>
-
 <div class="container">
-    <div class="card">
-        <h3>💳 Nạp tiền vào Ví JPYC</h3>
-        
-        <p style="font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px;">1. Chọn số tiền cần nạp:</p>
-        <div class="topup-grid">
-            <button class="topup-btn" onclick="selectTopup(100000, this)">100.000đ</button>
-            <button class="topup-btn" onclick="selectTopup(200000, this)">200.000đ</button>
-            <button class="topup-btn active" onclick="selectTopup(500000, this)">500.000đ</button>
-            <button class="topup-btn" onclick="selectTopup(1000000, this)">1.000.000đ</button>
-        </div>
-        <input type="number" id="customAmount" class="custom-topup" value="500000" placeholder="Nhập số tiền VNĐ khác...">
-        <p style="font-size: 14px; text-align: center; margin-bottom: 20px;">
-            Thực nhận: <b id="previewJPYC" style="color:#2196f3; font-size: 18px;">3000</b> JPYC
-        </p>
-
-        <p style="font-size: 14px; font-weight: bold; color: #555; margin-bottom: 10px;">2. Chọn phương thức thanh toán:</p>
-        <div class="pay-methods">
-            <div class="pay-method active" onclick="selectPayMethod('qr', this)">
-                <span style="font-size: 24px;">📱</span>
-                <span>Quét mã QR (VietQR / Napas)</span>
-            </div>
-            <div class="pay-method" onclick="selectPayMethod('card', this)">
-                <span style="font-size: 24px;">💳</span>
-                <span>Thẻ Tín Dụng (Visa / Mastercard)</span>
-            </div>
-            <div class="pay-method" onclick="selectPayMethod('momo', this)">
-                <span style="font-size: 24px;">🟣</span>
-                <span>Ví điện tử MoMo</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">📱</div>
+            <div class="logo-text">
+                <h1>Aloo E-SIM</h1>
+                <span>Invisible Wallet · Web2.5</span>
             </div>
         </div>
-
-        <button id="btnOpenTopupModal" class="btn-action btn-naptien">Tiến hành Thanh toán</button>
-    </div>
-
-    <div class="card">
-        <h3>🛒 Cửa hàng SIM Quốc Tế</h3>
-        <div class="product-grid">
-            <div class="product-item" onclick="selectProduct('ALOO_JP_7D', 1500, this)">
-                <div><div class="product-name">🇯🇵 SIM Nhật 7 Ngày</div><div class="product-desc">10GB Data Tốc độ cao. Phù hợp du lịch.</div></div>
-                <div class="product-price">1,500 JPYC</div>
-            </div>
-            <div class="product-item selected" onclick="selectProduct('ALOO_JP_15D', 2800, this)">
-                <div><div class="product-name">🇯🇵 SIM Nhật 15 Ngày</div><div class="product-desc">20GB Data. Có số điện thoại thực đăng ký dịch vụ.</div></div>
-                <div class="product-price">2,800 JPYC</div>
-            </div>
-            <div class="product-item" onclick="selectProduct('ALOO_JP_30D', 4500, this)">
-                <div><div class="product-name">🇯🇵 SIM Nhật 30 Ngày</div><div class="product-desc">Không giới hạn Data. Phù hợp công tác, du học sinh.</div></div>
-                <div class="product-price">4,500 JPYC</div>
-            </div>
-            <div class="product-item" onclick="selectProduct('ALOO_GLOBAL', 8000, this)">
-                <div><div class="product-name">🌍 SIM Global 30 Ngày</div><div class="product-desc">Sử dụng tại 72 quốc gia (Nhật, Hàn, Mỹ, Châu Âu...).</div></div>
-                <div class="product-price">8,000 JPYC</div>
+        <div class="user-panel">
+            <input type="email" id="email" class="email-input" value="khachhang_demo@gmail.com" title="Email định danh Ví Ẩn" placeholder="Nhập email...">
+            <div class="balance-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                <span id="balanceDisplay">0</span> JPYC
             </div>
         </div>
+    </header>
 
-        <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #eee;">
-            <div>
-                Đang chọn: <b id="selectedProductName" style="color: #ff5722;">ALOO_JP_15D</b><br>
-                Giá: <b id="selectedProductPrice">2800</b> JPYC
+    <div class="grid-layout">
+        <!-- Left Column: Topup -->
+        <div class="card">
+            <div class="card-header">💳 Nạp tiền vào Ví JPYC</div>
+            
+            <div class="section-label">1. Chọn thiết lập quy đổi:</div>
+            <div class="topup-grid">
+                <button class="topup-btn" onclick="selectTopup(100000, this)">100.000 ₫</button>
+                <button class="topup-btn" onclick="selectTopup(200000, this)">200.000 ₫</button>
+                <button class="topup-btn active" onclick="selectTopup(500000, this)">500.000 ₫</button>
+                <button class="topup-btn" onclick="selectTopup(1000000, this)">1.000.000 ₫</button>
             </div>
-            <button id="btnBuy" class="btn-action btn-mua" style="width: auto; padding: 14px 40px;">Thanh toán SIM</button>
+            
+            <input type="number" id="customAmount" class="custom-input" value="500000" placeholder="Nhập số tiền VNĐ khác...">
+            
+            <div class="preview-box">
+                Hệ thống Web3 đúc tự động: <b id="previewJPYC">3000</b> JPYC
+            </div>
+
+            <div class="section-label">2. Cổng thanh toán (Simulated):</div>
+            <div class="pay-methods">
+                <div class="pay-method active" onclick="selectPayMethod('qr', 'VietQR', this)">
+                    <span class="icon">📱</span>
+                    <span>Quét mã VietQR / Napas</span>
+                </div>
+                <div class="pay-method" onclick="selectPayMethod('card', 'Thẻ Quốc Tế', this)">
+                    <span class="icon">💳</span>
+                    <span>Thẻ Tín Dụng (Visa/Master)</span>
+                </div>
+                <div class="pay-method" onclick="selectPayMethod('momo', 'MoMo', this)">
+                    <span class="icon">🟣</span>
+                    <span>Ví điện tử MoMo</span>
+                </div>
+            </div>
+
+            <button id="btnOpenTopupModal" class="btn-action btn-primary">
+                Kích hoạt Thanh toán
+            </button>
+        </div>
+
+        <!-- Right Column: Store -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card" style="flex-grow: 1;">
+                <div class="card-header">🛒 Cửa hàng SIM Quốc Tế</div>
+                
+                <div class="product-grid">
+                    <div class="product-item" onclick="selectProduct('ALOO_JP_7D', 1500, this)">
+                        <div>
+                            <div class="product-name">🇯🇵 SIM Nhật 7 Ngày</div>
+                            <div class="product-desc">10GB Data Tốc độ cao. Phù hợp du lịch ngắn ngày.</div>
+                        </div>
+                        <div class="product-price">1,500 JPYC</div>
+                    </div>
+                    <div class="product-item selected" onclick="selectProduct('ALOO_JP_15D', 2800, this)">
+                        <div>
+                            <div class="product-name">🇯🇵 SIM Nhật 15 Ngày</div>
+                            <div class="product-desc">20GB Data. Có số điện thoại thực đăng ký dịch vụ.</div>
+                        </div>
+                        <div class="product-price">2,800 JPYC</div>
+                    </div>
+                    <div class="product-item" onclick="selectProduct('ALOO_JP_30D', 4500, this)">
+                        <div>
+                            <div class="product-name">🇯🇵 SIM Nhật 30 Ngày</div>
+                            <div class="product-desc">Không giới hạn Data. Phù hợp công tác, du học sinh.</div>
+                        </div>
+                        <div class="product-price">4,500 JPYC</div>
+                    </div>
+                    <div class="product-item" onclick="selectProduct('ALOO_GLOBAL', 8000, this)">
+                        <div>
+                            <div class="product-name">🌍 SIM Global 30 Ngày</div>
+                            <div class="product-desc">Sử dụng tại 72 quốc gia (Nhật, Hàn, Mỹ, Châu Âu...).</div>
+                        </div>
+                        <div class="product-price">8,000 JPYC</div>
+                    </div>
+                </div>
+
+                <div class="checkout-bar">
+                    <div class="checkout-info">
+                        <span>Đang chọn gói cước</span>
+                        <b id="selectedProductName">ALOO_JP_15D</b>
+                    </div>
+                    <button id="btnBuy" class="btn-action btn-accent" style="width: auto; padding: 14px 30px;">
+                        Thanh toán · <span id="selectedProductPrice" style="margin-left:4px;">2800</span> JPYC
+                    </button>
+                </div>
+            </div>
+
+            <div class="logger" id="log">
+                <div class="log-entry"><span class="log-time">[System]</span> <span class="log-msg">Cổng giao dịch Web2.5 đã sẵn sàng...</span></div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="logs-container">
-    <h4 style="color: #555; margin-bottom: 10px;">🔍 Blockchain Audit Logs</h4>
-    <div id="log"></div>
-</div>
-
+<!-- Modal Payment -->
 <div class="modal-overlay" id="paymentModal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="color: #2196f3; margin-bottom: 10px;">Cổng Thanh Toán</h3>
-        <p style="color: #666;">Số tiền cần thanh toán: <b id="modalAmount" style="color: #ff5722; font-size: 18px;">500,000 VNĐ</b></p>
+        <div class="modal-title" id="modalTitle">Cổng Thanh Toán</div>
+        <div class="modal-amount" id="modalAmount">500.000 ₫</div>
         
-        <div id="modalBody">
-            </div>
+        <div id="modalBody"></div>
 
-        <button id="btnConfirmPayment" class="btn-action btn-naptien" style="margin-top: 20px; background: #4caf50;">Xác nhận đã thanh toán</button>
-        <button onclick="closeModal()" style="margin-top: 10px; border: none; background: none; color: #888; cursor: pointer; text-decoration: underline;">Hủy giao dịch</button>
+        <button id="btnConfirmPayment" class="btn-action btn-accent">Mô phỏng: Xác nhận đã trả tiền</button>
+        <button onclick="closeModal()" class="btn-cancel">Quay lại</button>
     </div>
 </div>
 
@@ -157,106 +394,104 @@
     let currentBalance = 0;
     let selectedOrder = "ALOO_JP_15D";
     let selectedPrice = 2800;
-    let currentMethod = "qr";
+    let currentMethodCode = "qr";
+    let currentMethodName = "VietQR";
 
+    const API = "http://localhost:8000";
     const logDiv = document.getElementById('log');
     const inputAmount = document.getElementById('customAmount');
     const paymentModal = document.getElementById('paymentModal');
-    
-    function addLog(msg) {
-        const time = new Date().toLocaleTimeString();
-        logDiv.innerHTML += `<div><span style="color: #94a3b8;">[${time}]</span> ${msg}</div>`;
+
+    function log(msg, type='msg') {
+        const time = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+        logDiv.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span></div>`;
         logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    // NẠP TIỀN: Tính toán số lượng
-    function selectTopup(amount, element) {
-        document.querySelectorAll('.topup-btn').forEach(btn => btn.classList.remove('active'));
-        element.classList.add('active');
+    // Topup Logic
+    function selectTopup(amount, el) {
+        document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
         inputAmount.value = amount;
         updatePreview();
     }
+
     inputAmount.addEventListener('input', updatePreview);
+    
     function updatePreview() {
         const vnd = parseInt(inputAmount.value) || 0;
-        document.getElementById('previewJPYC').innerText = Math.round(vnd * 3000 / 500000); // Công thức chuẩn: 500k VND = 3000 JPYC
+        document.getElementById('previewJPYC').innerText = Math.round(vnd * 3000 / 500000).toLocaleString('vi-VN');
     }
 
-    // CHỌN PHƯƠNG THỨC THANH TOÁN
-    function selectPayMethod(method, element) {
-        document.querySelectorAll('.pay-method').forEach(item => item.classList.remove('active'));
-        element.classList.add('active');
-        currentMethod = method;
+    // Payment Methods Logic
+    function selectPayMethod(code, name, el) {
+        document.querySelectorAll('.pay-method').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        currentMethodCode = code;
+        currentMethodName = name;
     }
 
-    // CHỌN SIM
-    function selectProduct(orderId, price, element) {
-        document.querySelectorAll('.product-item').forEach(item => item.classList.remove('selected'));
-        element.classList.add('selected');
+    // Shop Product Logic
+    function selectProduct(orderId, price, el) {
+        document.querySelectorAll('.product-item').forEach(i => i.classList.remove('selected'));
+        el.classList.add('selected');
         selectedOrder = orderId;
         selectedPrice = price;
         document.getElementById('selectedProductName').innerText = orderId;
         document.getElementById('selectedProductPrice').innerText = price;
     }
 
-    // BẬT MODAL GIẢ LẬP THANH TOÁN
+    // Modal Triggers
     document.getElementById('btnOpenTopupModal').onclick = () => {
-        const vndAmount = parseInt(inputAmount.value);
-        if (vndAmount < 10000) return alert("Số tiền nạp tối thiểu là 10.000đ");
+        const vnd = parseInt(inputAmount.value);
+        if(!vnd || vnd < 10000) return alert("Số tiền nạp tối thiểu 10.000đ");
 
-        document.getElementById('modalAmount').innerText = vndAmount.toLocaleString() + " VNĐ";
-        const modalBody = document.getElementById('modalBody');
+        document.getElementById('modalAmount').innerText = vnd.toLocaleString('vi-VN') + " ₫";
+        const body = document.getElementById('modalBody');
 
-        if (currentMethod === 'qr' || currentMethod === 'momo') {
-            document.getElementById('modalTitle').innerText = currentMethod === 'qr' ? "Thanh toán VietQR" : "Thanh toán MoMo";
-            modalBody.innerHTML = `
+        if (currentMethodCode === 'qr' || currentMethodCode === 'momo') {
+            document.getElementById('modalTitle').innerText = "Thanh toán " + currentMethodName;
+            body.innerHTML = `
                 <div class="qr-placeholder">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" width="150" style="opacity: 0.5;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" width="160" style="opacity:0.8;">
                 </div>
-                <p style="font-size: 13px; color: #555;">Mở ứng dụng ngân hàng và quét mã QR trên để thanh toán.</p>
+                <p style="font-size: 13px; color: var(--text-2); margin-bottom:20px;">Mở ứng dụng ngân hàng quét mã QR trên</p>
             `;
-        } else if (currentMethod === 'card') {
+        } else {
             document.getElementById('modalTitle').innerText = "Thanh toán Thẻ Quốc Tế";
-            modalBody.innerHTML = `
-                <div style="text-align: left; margin-top: 20px;">
-                    <label style="font-size: 13px; font-weight: bold;">Số thẻ:</label>
-                    <input type="text" class="card-input" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242">
-                    <div style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label style="font-size: 13px; font-weight: bold;">MM/YY:</label>
-                            <input type="text" class="card-input" placeholder="12/26" value="12/26">
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="font-size: 13px; font-weight: bold;">CVC:</label>
-                            <input type="text" class="card-input" placeholder="123" value="123">
-                        </div>
-                    </div>
+            body.innerHTML = `
+                <div class="form-group">
+                    <label>Số thẻ Visa/Mastercard:</label>
+                    <input type="text" class="input-dark" value="4242 4242 4242 4242">
+                </div>
+                <div style="display:flex; gap:15px;" class="form-group">
+                    <div style="flex:1;"><label>Ngày hết hạn:</label><input type="text" class="input-dark" value="12/26"></div>
+                    <div style="flex:1;"><label>Mã CVC:</label><input type="password" class="input-dark" value="123"></div>
                 </div>
             `;
         }
-
         paymentModal.style.display = 'flex';
     };
 
     function closeModal() {
         paymentModal.style.display = 'none';
-        document.getElementById('btnConfirmPayment').innerText = "Xác nhận đã thanh toán";
+        document.getElementById('btnConfirmPayment').innerText = "Mô phỏng: Xác nhận đã trả tiền";
         document.getElementById('btnConfirmPayment').disabled = false;
     }
 
-    // THỰC THI GỌI API BACKEND SAU KHI "THANH TOÁN" XONG
+    // API Topup
     document.getElementById('btnConfirmPayment').onclick = async () => {
         const email = document.getElementById('email').value;
         const vndAmount = parseInt(inputAmount.value);
+        const btn = document.getElementById('btnConfirmPayment');
         
-        const btnConfirm = document.getElementById('btnConfirmPayment');
-        btnConfirm.innerText = "Đang đối soát & Ghi Blockchain...";
-        btnConfirm.disabled = true;
+        btn.innerText = "Đang chuyển JPYC on-chain...";
+        btn.disabled = true;
 
-        addLog(`🟡 Khách hàng đã thanh toán qua ${currentMethod.toUpperCase()}. Đang chuyển JPYC vào Ví Ẩn...`);
+        log(`🟡 Khách hàng đã thanh toán qua ${currentMethodName}. Đang kích hoạt Custodial Relayer...`, 'warn');
         
         try {
-            const res = await fetch('http://localhost:8000/api/topup', {
+            const res = await fetch(`${API}/api/topup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, vnd_amount: vndAmount })
@@ -265,34 +500,36 @@
             
             if(data.status === "success") {
                 currentBalance = data.new_balance;
-                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString();
-                addLog(`🟢 Hoàn tất! Đã bơm <b>${data.jpyc_received} JPYC</b> vào Ví Ẩn.`);
-                addLog(`🔗 Bút toán: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="tx-link">${data.txHash}</a>`);
+                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
+                log(`🟢 Web3 Success: Đã thay mặt khách chuyển <b>${data.jpyc_received} JPYC</b> vào Ví Ẩn.`, 'ok');
+                log(`🔗 TxHash: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="log-tx">${data.txHash.slice(0,30)}...</a>`, 'msg');
                 closeModal();
             } else {
-                addLog(`🔴 Lỗi: ${data.detail}`);
+                log(`🔴 Lỗi: ${data.detail}`, 'err');
                 closeModal();
             }
         } catch (e) { 
-            addLog("🔴 Lỗi kết nối đến máy chủ Backend!"); 
+            log("🔴 Mất kết nối tới API Backend (port 8000)!", 'err'); 
             closeModal();
         }
     };
 
-    // GỌI API: MUA SIM
+    // API Buy SIM
     document.getElementById('btnBuy').onclick = async () => {
         const email = document.getElementById('email').value;
         if(currentBalance < selectedPrice) {
-            alert(`Số dư không đủ! Bạn cần ${selectedPrice} JPYC. Vui lòng nạp thêm tiền.`);
+            alert(`Số dư không đủ! Cần ${selectedPrice} JPYC. Vui lòng nạp thêm tiền qua thẻ hoặc QR.`);
             return;
         }
         
-        document.getElementById('btnBuy').innerText = "Đang thanh toán...";
-        document.getElementById('btnBuy').disabled = true;
-        addLog(`🟡 Đang xử lý mua SIM <b>${selectedOrder}</b>. Ví Ẩn đang tự động ký Hợp đồng...`);
+        const btn = document.getElementById('btnBuy');
+        btn.innerHTML = "Đang ký On-chain...";
+        btn.disabled = true;
+
+        log(`🟡 Backend đang đóng vai trò Ví Ẩn, gọi Smart Contract cho ID <b>${selectedOrder}</b>...`, 'warn');
         
         try {
-            const res = await fetch('http://localhost:8000/api/buy-sim', {
+            const res = await fetch(`${API}/api/buy-sim`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, orderId: selectedOrder, jpyc_amount: selectedPrice })
@@ -301,21 +538,37 @@
             
             if(data.status === "success") {
                 currentBalance = data.remaining;
-                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString();
-                addLog(`🟢 Thanh toán thành công! Giao dịch được bảo lãnh on-chain.`);
-                addLog(`🔗 Bút toán kiểm toán: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="tx-link">${data.txHash}</a>`);
+                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
+                log(`🟢 Mua SIM thành công! Bút toán Smart Contract đã ghi nhận.`, 'ok');
+                log(`🔗 Smart Contract Tx: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" class="log-tx">${data.txHash.slice(0,30)}...</a>`, 'msg');
             } else {
-                addLog(`🔴 Lỗi Blockchain: ${data.detail}`);
+                log(`🔴 Lỗi Smart Contract: ${data.detail}`, 'err');
             }
         } catch (e) { 
-            addLog("🔴 Lỗi kết nối máy chủ Backend!"); 
+            log("🔴 Lỗi Web3 Backend: Không call được Smart Contract!", 'err'); 
         }
         
-        document.getElementById('btnBuy').innerText = "Thanh toán SIM";
-        document.getElementById('btnBuy').disabled = false;
+        btn.innerHTML = `Thanh toán · <span style="margin-left:4px;">${selectedPrice}</span> JPYC`;
+        btn.disabled = false;
     };
 
-    updatePreview(); // Initialize preview value
+    updatePreview();
+    
+    // Auto load balance
+    (async () => {
+        try {
+            const res = await fetch(`${API}/api/balance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: document.getElementById('email').value })
+            });
+            if(res.ok) {
+                const data = await res.json();
+                currentBalance = data.balance;
+                document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString('vi-VN');
+            }
+        } catch (e) {}
+    })();
 </script>
 </body>
 </html>
