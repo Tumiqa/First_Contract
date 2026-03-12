@@ -8,12 +8,17 @@ import json
 
 app = FastAPI()
 
+# ---------------------------------------------
+# CẤU HÌNH CORS (BẢN CHUẨN ĐỂ FIX LỖI 405)
+# ---------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ---------------------------------------------
 
 from dotenv import load_dotenv
 import os
