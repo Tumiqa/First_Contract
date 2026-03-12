@@ -94,6 +94,10 @@ def send_tx(fn_call, sender_pk: str, gas: int = 200_000) -> str:
     signed  = web3.eth.account.sign_transaction(txn, private_key=sender_pk)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
     receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+    
+    if receipt.status != 1:
+        raise Exception("Giao dịch bị Revert bởi Smart Contract (Có thể do thiếu số dư)")
+        
     hex_h   = web3.to_hex(tx_hash)
     print(f"  ✅ TX OK — Hash: {hex_h}  Block: {receipt.blockNumber}")
     return hex_h
@@ -160,9 +164,15 @@ async def topup_wallet(req: TopupRequest):
     print(f"\n[TOP-UP] Email: {req.email} | Nhận: {req.vnd_amount} VND -> Quy đổi: {jpyc_amount} JPYC")
     
     try:
+        # Pre-flight check: Kiểm tra Quỹ của Master có đủ JPYC không
+        admin_balance = jpyc_contract.functions.balanceOf(MASTER_ADDRESS).call()
+        required_wei = web3.to_wei(jpyc_amount, 'ether')
+        
+        if admin_balance < required_wei:
+            raise Exception("Quỹ Admin đã cạn kiệt JPYC! Vui lòng liên hệ Admin nạp thêm.")
+            
         # Chuyển (transfer) từ Quỹ của Master -> User
-        # Sẽ bị lỗi nếu Master không đủ quỹ JPYC
-        transfer_abi = jpyc_contract.functions.transfer(user["address"], web3.to_wei(jpyc_amount, 'ether'))
+        transfer_abi = jpyc_contract.functions.transfer(user["address"], required_wei)
         tx_hash = send_tx(transfer_abi, MASTER_PK)
         
         user["balance_jpyc"] += jpyc_amount
