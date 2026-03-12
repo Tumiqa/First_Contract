@@ -288,11 +288,7 @@ async def get_balance(req: BalanceRequest):
         "address": user["address"]
     }
 
-# ── Compat: Webhook (giữ cho MetaMask frontend cũ) ──────────
-@app.post("/webhook/blockchain")
-async def blockchain_webhook(payload: dict):
-    print(f"\n🔔 Webhook | Order: {payload.get('orderId')} | TxHash: {payload.get('txHash')}")
-    return {"status": "received"}
+
 
 # ============================================================
 #  API 3: ADMIN RÚT DOANH THU (OFF-RAMP PIPELINE)
