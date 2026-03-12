@@ -107,7 +107,7 @@ def send_eth(to: str, value_eth: float) -> str:
         "value":    web3.to_wei(value_eth, "ether"),
         "gas":      21_000,
         "gasPrice": web3.eth.gas_price,
-        "chainId":  31337,
+        "chainId":  CHAIN_ID,
     }
     signed  = web3.eth.account.sign_transaction(txn, private_key=MASTER_PK)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
