@@ -93,7 +93,7 @@
         status.innerText = "Đang gửi giao dịch Mint lên mạng Sepolia...";
 
         try {
-            const response = await fetch("http://localhost:8000/api/admin/mint", {
+            const response = await fetch("https://aloo-backend-api.onrender.com/api/admin/mint", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount: parseInt(amount) })
