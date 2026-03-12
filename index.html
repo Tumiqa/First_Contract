@@ -601,10 +601,11 @@
         log(`🟡 Backend đang dùng cấu trúc Ví Ẩn chuyển <b>${selectedPriceJPYC} JPYC</b> vào Smart Contract...`, 'warn');
         
         try {
+            const uniqueOrderId = `${selectedOrder}_${Date.now()}`;
             const res = await fetch(`${API}/api/buy-sim`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, orderId: selectedOrder, jpyc_amount: selectedPriceJPYC })
+                body: JSON.stringify({ email: email, orderId: uniqueOrderId, jpyc_amount: selectedPriceJPYC })
             });
             const data = await res.json();
             
