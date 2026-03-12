@@ -61,42 +61,42 @@
 <body>
 
 <div class="dashboard">
-    <div class="header-title">⚙️ Bộ Chỉ Huy Chiến Lược (Hệ Thống Kép Web2.5)</div>
+    <div class="header-title">⚙️ Trang Quản Trị Hệ Thống</div>
     
     <div class="box-container">
         <!-- Két sắt Smart Contract -->
         <div class="contract-box">
-            <div class="box-label">🏢 Két Sắt Smart Contract (Nơi nhận Doanh Thu Tự Động)</div>
+            <div class="box-label">🏢 Hợp đồng thông minh (Lưu trữ doanh thu)</div>
             <div class="address-box" id="contractAddress">0xf2C183f79f89845c57ae5AB84466C783dc2dc35E</div>
             <div class="stat-card" style="background: rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.2);">
-                <span class="label" style="color: #fdba74;">Doanh Thu Đang Tồn Đọng (JPYC)</span>
+                <span class="label" style="color: #fdba74;">Doanh thu chưa rút (JPYC)</span>
                 <span id="contractBalance" class="value contract-val">0.00 JPYC</span>
             </div>
-            <button id="btnWithdraw" class="btn-withdraw" onclick="withdrawToMaster()">🔄 GOM QUỸ CHỐT CA VỀ VÍ TỔNG</button>
-            <a href="#" id="etherscanContract" target="_blank" class="link">🔍 Soi Két Sắt trên Etherscan</a>
+            <button id="btnWithdraw" class="btn-withdraw" onclick="withdrawToMaster()">RÚT DOANH THU VỀ VÍ CÔNG TY</button>
+            <a href="#" id="etherscanContract" target="_blank" class="link">🔍 Xem lịch sử trên Etherscan</a>
         </div>
 
         <!-- Ví Tổng (Master Wallet) -->
         <div class="wallet-box">
-            <div class="box-label">🏦 Ví Tổng Doanh Nghiệp (Master Wallet / OTC Payout)</div>
+            <div class="box-label">🏦 Ví Công Ty (Master Wallet)</div>
             <div class="address-box" id="adminAddress">Đang tải...</div>
             <div class="stat-grid">
                 <div class="stat-card">
-                    <span class="label">Quỹ Sepolia ETH (Gas)</span>
+                    <span class="label">Số dư phí mạng (Sepolia ETH)</span>
                     <span id="ethBalance" class="value eth-val">0.0000 ETH</span>
                 </div>
                 <div class="stat-card">
-                    <span class="label">Tài Sản Thanh Khoản (JPYC)</span>
+                    <span class="label">Số dư JPYC</span>
                     <span id="jpycBalance" class="value jpyc-val">0.00 JPYC</span>
                 </div>
             </div>
-            <div class="instruction-text">* Sẵn sàng Off-ramp bán lên sàn OTC lấy VNĐ/USD</div>
+            <div class="instruction-text">* Số dư sẵn sàng để Off-ramp ra VNĐ/USD</div>
         </div>
     </div>
 
-    <button class="btn-action" onclick="fetchBalances()">🔄 Cập nhật Số dư Mạng Sepolia</button>
+    <button class="btn-action" onclick="fetchBalances()">Cập nhật số dư</button>
     
-    <div id="logArea" class="log-area">Sẵn sàng đối soát dữ liệu...</div>
+    <div id="logArea" class="log-area">Hệ thống sẵn sàng...</div>
 </div>
 
 <script type="module">
@@ -107,6 +107,7 @@
     const JPYC_ADDRESS = "0x782f6323c6d40a4b6f34adbaf27cfba441ec072e";
     const CONTRACT_ADDRESS = "0xF2C183F79F89845C57aE5aB84466c783Dc2dc35E"; 
     
+    // Đã trỏ tới link Render thật
     const API_URL = "https://aloo-backend-api.onrender.com";
 
     document.getElementById('adminAddress').innerText = MASTER_WALLET;
@@ -134,16 +135,16 @@
             const btnWithdraw = document.getElementById('btnWithdraw');
             if(contractBal === 0n) {
                 btnWithdraw.disabled = true;
-                btnWithdraw.innerText = "KÉT SẮT TRỐNG - KHÔNG CÓ DOANH THU";
+                btnWithdraw.innerText = "CHƯA CÓ DOANH THU ĐỂ RÚT";
             } else {
                 btnWithdraw.disabled = false;
-                btnWithdraw.innerText = "🔄 GOM QUỸ CHỐT CA VỀ VÍ TỔNG";
+                btnWithdraw.innerText = "RÚT DOANH THU VỀ VÍ CÔNG TY";
             }
 
-            logArea.innerHTML = "<span style='color: var(--accent);'>🟢 Đồng bộ thành công! Dữ liệu realtime từ Sepolia.</span>";
+            logArea.innerHTML = "<span style='color: var(--accent);'>🟢 Cập nhật dữ liệu thành công!</span>";
         } catch (error) {
             console.error(error);
-            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi kết nối RPC Alchemy!</span>";
+            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi kết nối Blockchain (Alchemy)!</span>";
         }
     };
 
@@ -152,8 +153,8 @@
         const logArea = document.getElementById('logArea');
         
         btn.disabled = true;
-        btn.innerText = "ĐANG XỬ LÝ RÚT TIỀN ON-CHAIN...";
-        logArea.innerHTML = "<span style='color: var(--warning);'>🟡 Đang gửi chữ ký Ví Tổng mở khóa Smart Contract...</span>";
+        btn.innerText = "ĐANG XỬ LÝ RÚT TIỀN...";
+        logArea.innerHTML = "<span style='color: var(--warning);'>🟡 Đang gửi chữ ký Ví Công Ty...</span>";
 
         try {
             const res = await fetch(`${API_URL}/api/admin/withdraw`, {
@@ -164,19 +165,18 @@
             if(data.status === "success") {
                 logArea.innerHTML = `
                     <span style='color: var(--accent);'>🟢 Rút tiền thành công!</span><br>
-                    🔗 Hash: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" style="color: #4ade80; text-decoration: underline;">${data.txHash.substring(0,20)}...</a><br>
-                    <span style='color: #fdba74; font-weight: bold;'>Tiền đã nằm ở Ví Tổng, sẵn sàng bán OTC ra VND!</span>
+                    🔗 Mã giao dịch: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" style="color: #4ade80; text-decoration: underline;">${data.txHash.substring(0,20)}...</a><br>
                 `;
                 setTimeout(fetchBalances, 3000); 
             } else {
                 logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi từ Blockchain: " + data.detail + "</span>";
                 btn.disabled = false;
-                btn.innerText = "🔄 GOM QUỸ CHỐT CA VỀ VÍ TỔNG";
+                btn.innerText = "RÚT DOANH THU VỀ VÍ CÔNG TY";
             }
         } catch (e) {
-            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi mất kết nối Backend (API)!</span>";
+            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi kết nối máy chủ Backend!</span>";
             btn.disabled = false;
-            btn.innerText = "🔄 GOM QUỸ CHỐT CA VỀ VÍ TỔNG";
+            btn.innerText = "RÚT DOANH THU VỀ VÍ CÔNG TY";
         }
     };
 
