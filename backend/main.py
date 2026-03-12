@@ -15,12 +15,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from dotenv import load_dotenv
+import os
+
+# Load .env file từ thư mục gốc
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 # Cấu Hình Blockchain (Mạng Sepolia Testnet)
 RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/grgjw1ZoCe7BqANEH_DS3"
 web3 = Web3(Web3.HTTPProvider(RPC_URL))
 
 # Ví Tổng (Master Wallet) - trả tiền Gas và nắm giữ JPYC
-MASTER_PK = "cdb6004d0092b4c975f9171b9d9d3ae178e7bcfc7f4b7198eece11dd905cbbec"
+MASTER_PK = os.getenv("SEPOLIA_PRIVATE_KEY", "")
+if not MASTER_PK:
+    raise ValueError("Thiếu SEPOLIA_PRIVATE_KEY trong file .env!")
+    
 MASTER_ADDRESS = web3.eth.account.from_key(MASTER_PK).address
 
 # Smart Contracts mới deploy trên Sepolia
