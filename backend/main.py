@@ -2,30 +2,31 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from web3 import Web3
-import time
+from eth_account import Account
+import secrets
+import json
 
-app = FastAPI(title="Aloo SIM — Invisible Wallet Relayer", version="2.0.0")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ============================================================
-#  CẤU HÌNH WEB3 & VÍ TỔNG
-# ============================================================
-web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
+# Cấu Hình Blockchain (Mạng Sepolia Testnet)
+RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/grgjw1ZoCe7BqANEH_DS3"
+web3 = Web3(Web3.HTTPProvider(RPC_URL))
 
-# Account #0 — Ví Tổng của Aloo: giữ quỹ JPYC + trả phí Gas hộ khách
-MASTER_PK      = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+# Ví Tổng (Master Wallet) - trả tiền Gas và nắm giữ JPYC
+MASTER_PK = "cdb6004d0092b4c975f9171b9d9d3ae178e7bcfc7f4b7198eece11dd905cbbec"
 MASTER_ADDRESS = web3.eth.account.from_key(MASTER_PK).address
 
-# ⚠️ CẬP NHẬT sau khi chạy: npx hardhat run scripts/deploy.js --network localhost
-TOKEN_ADDRESS    = "0x0165878a594ca255338adfa4d48449f69242eb8f"   # MockERC20 (JPYC)
-CONTRACT_ADDRESS = "0xa513e6e4b8f2a923d98304ec87f64353c4d5c853"   # AlooSimPayment
+# Smart Contracts mới deploy trên Sepolia
+TOKEN_ADDRESS = web3.to_checksum_address("0x782f6323c6d40a4b6f34adbaf27cfba441ec072e")
+CONTRACT_ADDRESS = web3.to_checksum_address("0xf2c183f79f89845c57ae5ab84466c783dc2dc35e")
+CHAIN_ID = 11155111
 
 # ── ABIs ──────────────────────────────────────────────────────
 ERC20_ABI = [
@@ -76,7 +77,7 @@ def send_tx(fn_call, sender_pk: str, gas: int = 200_000) -> str:
     sender = web3.eth.account.from_key(sender_pk).address
     nonce  = web3.eth.get_transaction_count(sender, "pending")
     txn    = fn_call.build_transaction({
-        "chainId":  31337,
+        "chainId":  CHAIN_ID,
         "gas":      gas,
         "gasPrice": web3.eth.gas_price,
         "nonce":    nonce,
