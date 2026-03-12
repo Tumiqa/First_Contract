@@ -316,7 +316,7 @@ async def withdraw_revenue():
         
         # Ký và gửi transaction
         signed_tx = web3.eth.account.sign_transaction(tx, MASTER_PK)
-        tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
         
         # Đợi transaction được xác nhận
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
