@@ -76,7 +76,9 @@ ALOO_ABI = [
         "stateMutability": "nonpayable", "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {"internalType": "uint256", "name": "_amount", "type": "uint256"}
+        ],
         "name": "withdraw", "outputs": [],
         "stateMutability": "nonpayable", "type": "function"
     }
@@ -299,11 +301,17 @@ async def withdraw_revenue():
         raise HTTPException(status_code=503, detail="Không kết nối được Hardhat Node")
     try:
         print("\n[ADMIN - CHỐT CA] Đang gom toàn bộ doanh thu JPYC từ Két sắt Smart Contract...")
-        # Lấy nonce của Ví Tổng
+        
+        # 1. KIỂM TRA SỐ DƯ KÉT SẮT
+        contract_balance = jpyc_contract.functions.balanceOf(CONTRACT_ADDRESS).call()
+        if contract_balance == 0:
+            raise Exception("Két sắt đang trống, không có doanh thu để rút!")
+
+        # 2. THỰC HIỆN RÚT TOÀN BỘ SỐ DƯ
         nonce = web3.eth.get_transaction_count(MASTER_ADDRESS, 'pending')
         
-        # Build transaction kích hoạt hàm withdraw() của hợp đồng AlooSimPayment
-        tx = aloo_contract.functions.withdraw().build_transaction({
+        # CHÚ Ý: Truyền contract_balance vào hàm withdraw
+        tx = aloo_contract.functions.withdraw(contract_balance).build_transaction({
             'chainId': 11155111, # Sepolia
             'gas': 100_000,
             'gasPrice': web3.eth.gas_price,
