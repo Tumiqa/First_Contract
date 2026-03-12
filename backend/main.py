@@ -237,7 +237,15 @@ async def buy_sim(req: BuyRequest):
 @app.post("/api/balance")
 async def get_balance(req: BalanceRequest):
     if req.email not in user_db:
-        return {"balance": 0, "address": None}
+        # Tự động tạo Ví Ẩn ngay khi có email mới query số dư
+        new_acc = web3.eth.account.create()
+        user_db[req.email] = {
+            "address":      new_acc.address,
+            "pk":           web3.to_hex(new_acc.key),
+            "balance_jpyc": 0,
+        }
+        print(f"  🔑 Auto-tạo Ví Ẩn cho {req.email}: {new_acc.address}")
+        
     user = user_db[req.email]
     return {
         "balance": user["balance_jpyc"],
