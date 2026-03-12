@@ -1,6 +1,6 @@
 # Aloo SIM — Hệ thống Thanh toán SIM Quốc Tế qua Blockchain (Web2.5)
 
-> Đồ án Fintech: Tích hợp Smart Contract Ethereum vào quy trình thanh toán SIM du lịch, sử dụng kiến trúc **Invisible Wallet** để mang lại trải nghiệm Web2 cho người dùng cuối trong khi vẫn đảm bảo tính minh bạch trên Blockchain.
+> Tích hợp Smart Contract Ethereum vào quy trình thanh toán SIM du lịch, sử dụng kiến trúc **Invisible Wallet** để mang lại trải nghiệm Web2 cho người dùng cuối trong khi vẫn đảm bảo tính minh bạch trên Blockchain.
 
 ---
 
