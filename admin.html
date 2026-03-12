@@ -144,7 +144,7 @@
             logArea.innerHTML = "<span style='color: var(--accent);'>🟢 Cập nhật dữ liệu thành công!</span>";
         } catch (error) {
             console.error(error);
-            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi kết nối Blockchain (Alchemy)!</span>";
+            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi: " + (error.message || error) + "</span>";
         }
     };
 
