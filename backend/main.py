@@ -146,35 +146,51 @@ async def topup_wallet(req: TopupRequest):
             "balance_jpyc": 0,
         }
         print(f"  🔑 Tạo Ví Ẩn mới: {new_acc.address}")
+    if not web3.is_connected():
+        raise HTTPException(status_code=503, detail="Không kết nối được Hardhat Node")
 
-    user      = user_db[req.email]
-    # Quy đổi VND → JPYC: 500,000 VND = 3,000 JPYC
-    jpyc_mint = round(req.vnd_amount * 3000 / 500_000)
-    amount_wei = web3.to_wei(jpyc_mint, "ether")
+    if req.email not in user_db:
+        raise HTTPException(404, "User not found. Need to check balance first to auto-create wallet.")
+    
+    # Số JPYC tự quy đổi
+    RATE = 500000 / 3000
+    jpyc_amount = int(req.vnd_amount / RATE)
+    user = user_db[req.email]
+    
+    print(f"\n[TOP-UP] Email: {req.email} | Nhận: {req.vnd_amount} VND -> Quy đổi: {jpyc_amount} JPYC")
+    
+    try:
+        # Chuyển (transfer) từ Quỹ của Master -> User
+        # Sẽ bị lỗi nếu Master không đủ quỹ JPYC
+        transfer_abi = jpyc_contract.functions.transfer(user["address"], web3.to_wei(jpyc_amount, 'ether'))
+        tx_hash = send_tx(transfer_abi, MASTER_PK)
+        
+        user["balance_jpyc"] += jpyc_amount
+        return {
+            "status": "success",
+            "jpyc_received": jpyc_amount,
+            "new_balance": user["balance_jpyc"],
+            "invisible_wallet": user["address"],
+            "txHash": tx_hash
+        }
+    except Exception as e:
+        print("Lỗi Topup:", e)
+        return {"status": "error", "detail": str(e)}
 
-    # Bước 2: Mint JPYC vào Ví Tổng (Aloo nhận fiat, lập tức đúc token tương đương)
-    print(f"  ➡ Mint {jpyc_mint} JPYC vào Ví Tổng (giả lập nhận tiền ngân hàng)...")
-    send_tx(jpyc_contract.functions.mint(MASTER_ADDRESS, amount_wei), MASTER_PK)
+class AdminMintRequest(BaseModel):
+    amount: int
 
-    # Bước 3: Chuyển JPYC từ Quỹ Aloo → Ví Ẩn của khách
-    print(f"  ➡ Transfer {jpyc_mint} JPYC từ Quỹ → Ví Ẩn khách...")
-    topup_hash = send_tx(
-        jpyc_contract.functions.transfer(
-            Web3.to_checksum_address(user["address"]), amount_wei
-        ),
-        MASTER_PK
-    )
-
-    user["balance_jpyc"] += jpyc_mint
-    print(f"  ✅ Nạp xong! Số dư Ví Ẩn: {user['balance_jpyc']} JPYC")
-
-    return {
-        "status":           "success",
-        "jpyc_received":    jpyc_mint,
-        "new_balance":      user["balance_jpyc"],
-        "invisible_wallet": user["address"],
-        "txHash":           topup_hash,
-    }
+@app.post("/api/admin/mint")
+async def admin_mint_jpyc(req: AdminMintRequest):
+    if not web3.is_connected():
+        raise HTTPException(status_code=503, detail="Không kết nối được Hardhat Node")
+    try:
+        print(f"\n[ADMIN] Đang đúc thêm {req.amount} JPYC vào Quỹ Dự Trữ...")
+        mint_abi = jpyc_contract.functions.mint(MASTER_ADDRESS, web3.to_wei(req.amount, 'ether'))
+        tx_hash = send_tx(mint_abi, MASTER_PK)
+        return {"status": "success", "txHash": tx_hash}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 # ============================================================
 #  API 2: MUA SIM — Ví Ẩn ký giao dịch & gọi Smart Contract

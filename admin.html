@@ -33,7 +33,17 @@
         </div>
     </div>
 
-    <button class="btn-refresh" onclick="fetchBalances()">🔄 Cập nhật Số dư On-chain</button>
+    <button class="btn-refresh" onclick="fetchBalances()">🔄 Cập nhật Số dư Mạng Sepolia</button>
+    
+    <div style="margin-top: 25px; padding: 20px; background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 10px;">
+        <h3 style="color: #4ade80; margin-top: 0; font-size: 16px;">Nghiệp vụ: Nạp tiền vào Quỹ Dự Trữ</h3>
+        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Mô phỏng ngân hàng chuyển tiền pháp định cho Paymaster. Paymaster đúc (Mint) JPYC tương ứng vào Ví Tổng để chuẩn bị bán cho khách.</p>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="mintAmount" value="100000" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #4ade80; background: #1e1e2f; color: white; font-weight: bold;">
+            <button onclick="mintJPYC()" id="btnMint" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">Đúc (Mint) JPYC</button>
+        </div>
+        <p id="mintStatus" style="font-size: 12px; margin-top: 10px; color: #facc15; display: none;"></p>
+    </div>
     
     <a href="#" id="etherscanLink" target="_blank" class="link">🔍 Tra cứu Ví trên Sepolia Etherscan</a>
 </div>
@@ -68,6 +78,43 @@
             console.error("Lỗi:", error);
             alert("Lỗi khi kết nối Blockchain!");
         }
+    };
+
+    window.mintJPYC = async () => {
+        const amount = document.getElementById('mintAmount').value;
+        const btn = document.getElementById('btnMint');
+        const status = document.getElementById('mintStatus');
+        
+        if (!amount || amount <= 0) return alert("Vui lòng nhập số lượng hợp lệ");
+        
+        btn.disabled = true;
+        btn.innerText = "Đang ký On-chain...";
+        status.style.display = 'block';
+        status.innerText = "Đang gửi giao dịch Mint lên mạng Sepolia...";
+
+        try {
+            const response = await fetch("http://localhost:8000/api/admin/mint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: parseInt(amount) })
+            });
+            const data = await response.json();
+            
+            if (data.status === "success") {
+                status.style.color = "#4ade80";
+                status.innerHTML = `✅ Đúc thành công! <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" style="color: #818cf8;">Xem TxHash</a>`;
+                fetchBalances(); // Refresh
+            } else {
+                status.style.color = "#ef4444";
+                status.innerText = "❌ Lỗi: " + data.detail;
+            }
+        } catch (e) {
+            status.style.color = "#ef4444";
+            status.innerText = "❌ Lỗi mất kết nối Backend (port 8000)";
+        }
+        
+        btn.disabled = false;
+        btn.innerText = "Đúc (Mint) JPYC";
     };
 
     // Tự động tải lần đầu
