@@ -97,6 +97,14 @@
         .card-header { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
         .section-label { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; }
         
+        /* CURRENCY SELECTOR */
+        .currency-tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+        .currency-tabs::-webkit-scrollbar { height: 4px; }
+        .currency-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .currency-tab { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border); color: var(--text-2); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .currency-tab:hover { background: rgba(255,255,255,0.05); color: var(--text-1); }
+        .currency-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); }
+
         /* TWO WAY EXCHANGE CALCULATOR */
         .exchange-calc { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; position: relative; }
         .input-group { display: flex; flex-direction: column; gap: 8px; }
@@ -210,13 +218,21 @@
         <div class="card">
             <div class="card-header">💳 Nạp tiền vào tài khoản</div>
             
+            <div class="currency-tabs" id="currencySelector">
+                <div class="currency-tab active" onclick="setCurrency('VND')">🇻🇳 VNĐ</div>
+                <div class="currency-tab" onclick="setCurrency('JPY')">🇯🇵 JPY</div>
+                <div class="currency-tab" onclick="setCurrency('USD')">🇺🇸 USD</div>
+                <div class="currency-tab" onclick="setCurrency('EUR')">🇪🇺 EUR</div>
+                <div class="currency-tab" onclick="setCurrency('CNY')">🇨🇳 CNY</div>
+            </div>
+
             <div class="section-label">1. Nhập hoặc quy đổi số tiền:</div>
             
             <div class="exchange-calc">
                 <div class="input-group">
-                    <label>Tiền thanh toán (VNĐ)</label>
+                    <label id="labelFiat">Tiền thanh toán (VNĐ)</label>
                     <div class="input-wrapper">
-                        <span>VNĐ</span>
+                        <span id="symbolFiat">VNĐ</span>
                         <input type="number" id="inputVND" value="500000" oninput="calcToJPYC()">
                     </div>
                 </div>
@@ -230,7 +246,7 @@
                 </div>
             </div>
 
-            <div class="topup-presets">
+            <div class="topup-presets" id="presetContainer">
                 <button class="preset-btn" onclick="setPreset(100000)">100k</button>
                 <button class="preset-btn" onclick="setPreset(200000)">200k</button>
                 <button class="preset-btn" onclick="setPreset(500000)">500k</button>
@@ -238,7 +254,8 @@
             </div>
 
             <div class="section-label">2. Nguồn tiền (Mô phỏng):</div>
-            <div class="pay-methods">
+            <div class="pay-methods" id="payMethodsContainer">
+                <!-- Được load tự động bằng JS dựa trên loại tiền -->
                 <div class="pay-method active" onclick="selectPayMethod('qr', 'VietQR', this)">
                     <span class="icon">📱</span>
                     <span>Quét mã VietQR / Napas</span>
@@ -338,16 +355,67 @@
 </div>
 
 <script>
-    const RATE = 500000 / 3000; // 1 JPYC = 166.666 VND
+    // Currency Configurations
+    const CURRENCIES = {
+        'VND': { 
+            symbol: 'VNĐ', name: 'VNĐ', rateToJPYC: 166.666, format: (val) => val.toLocaleString('vi-VN'), defaultAmount: 500000, 
+            presets: [{l:'100k',v:100000}, {l:'200k',v:200000}, {l:'500k',v:500000}, {l:'1 Triệu',v:1000000}],
+            methods: [
+                { id: 'qr', icon: '📱', name: 'Quét mã VietQR / Napas' },
+                { id: 'momo', icon: '🟣', name: 'Ví điện tử MoMo' },
+                { id: 'card', icon: '💳', name: 'Thẻ Tín Dụng Quốc Tế' }
+            ]
+        },
+        'JPY': { 
+            symbol: '¥', name: 'JPY', rateToJPYC: 1, format: (val) => '¥' + val.toLocaleString('ja-JP'), defaultAmount: 3000,
+            presets: [{l:'¥1,000',v:1000}, {l:'¥3,000',v:3000}, {l:'¥5,000',v:5000}, {l:'¥10,000',v:10000}],
+            methods: [
+                { id: 'paypay', icon: '🅿️', name: 'PayPay' },
+                { id: 'linepay', icon: '🟢', name: 'LINE Pay' },
+                { id: 'jcb', icon: '💳', name: 'Credit Card (JCB/Visa)' }
+            ]
+        },
+        'USD': { 
+            symbol: '$', name: 'USD', rateToJPYC: 0.0066, format: (val) => '$' + val.toLocaleString('en-US'), defaultAmount: 20,
+            presets: [{l:'$10',v:10}, {l:'$20',v:20}, {l:'$50',v:50}, {l:'$100',v:100}],
+            methods: [
+                { id: 'paypal', icon: '🔵', name: 'PayPal' },
+                { id: 'applepay', icon: '🍎', name: 'Apple Pay' },
+                { id: 'card', icon: '💳', name: 'Credit Card (Visa/Master)' }
+            ]
+        },
+        'EUR': { 
+            symbol: '€', name: 'EUR', rateToJPYC: 0.0061, format: (val) => '€' + val.toLocaleString('de-DE'), defaultAmount: 20,
+            presets: [{l:'€10',v:10}, {l:'€20',v:20}, {l:'€50',v:50}, {l:'€100',v:100}],
+            methods: [
+                { id: 'sepa', icon: '🏦', name: 'SEPA Bank Transfer' },
+                { id: 'ideal', icon: '🇳🇱', name: 'iDEAL' },
+                { id: 'card', icon: '💳', name: 'Credit Card' }
+            ]
+        },
+        'CNY': { 
+            symbol: '¥', name: 'CNY', rateToJPYC: 0.047, format: (val) => '¥' + val.toLocaleString('zh-CN'), defaultAmount: 150,
+            presets: [{l:'¥50',v:50}, {l:'¥150',v:150}, {l:'¥300',v:300}, {l:'¥500',v:500}],
+            methods: [
+                { id: 'alipay', icon: '🛡️', name: 'Alipay (支付宝)' },
+                { id: 'wechat', icon: '💬', name: 'WeChat Pay (微信支付)' },
+                { id: 'unionpay', icon: '💳', name: 'UnionPay (银联)' }
+            ]
+        }
+    };
+
+    let activeCurrency = 'VND';
+    const RATE_VND_TO_JPYC = 500000 / 3000; // Base conversion rate for backend which expects VND
     let currentBalanceJPYC = 0;
     
     let selectedOrder = "ALOO_JP_15D";
     let selectedPriceJPYC = 2800;
     
     let currentMethodCode = "qr";
+    let currentMethodName = "Quét mã VietQR / Napas";
     const API = "https://aloo-backend-api.onrender.com";
     const logDiv = document.getElementById('log');
-    const inputVND = document.getElementById('inputVND');
+    const inputFiat = document.getElementById('inputVND'); // Reuse input ID but now handles generic fiat
     const inputJPYC = document.getElementById('inputJPYC');
     const paymentModal = document.getElementById('paymentModal');
 
@@ -357,26 +425,84 @@
         logDiv.scrollTop = logDiv.scrollHeight;
     }
 
+    // Currency Switcher Logic
+    function setCurrency(currCode) {
+        activeCurrency = currCode;
+        const config = CURRENCIES[currCode];
+        
+        // Update tabs UI
+        document.querySelectorAll('.currency-tab').forEach(tab => {
+            if(tab.innerText.includes(currCode)) tab.classList.add('active');
+            else tab.classList.remove('active');
+        });
+
+        // Update Labels and Inputs
+        document.getElementById('labelFiat').innerText = `Tiền thanh toán (${config.name})`;
+        document.getElementById('symbolFiat').innerText = config.symbol;
+        
+        // Update presets
+        const presetContainer = document.getElementById('presetContainer');
+        presetContainer.innerHTML = '';
+        config.presets.forEach(p => {
+            presetContainer.innerHTML += `<button class="preset-btn" onclick="setPreset(${p.v})">${p.l}</button>`;
+        });
+
+        // Update payment methods
+        const methodsContainer = document.getElementById('payMethodsContainer');
+        methodsContainer.innerHTML = '';
+        config.methods.forEach((m, idx) => {
+            const activeCls = idx === 0 ? 'active' : '';
+            methodsContainer.innerHTML += `
+                <div class="pay-method ${activeCls}" onclick="selectPayMethod('${m.id}', '${m.name}', this)">
+                    <span class="icon">${m.icon}</span>
+                    <span>${m.name}</span>
+                </div>
+            `;
+            if (idx === 0) { currentMethodCode = m.id; currentMethodName = m.name; }
+        });
+
+        // Set default values & recalculate
+        setPreset(config.defaultAmount);
+        
+        // Update store prices UI
+        document.getElementById('selectedProductPriceVND').innerText = getFormattedPriceForStore(selectedPriceJPYC);
+        document.querySelectorAll('.product-item').forEach(item => {
+            const jpycStr = item.querySelector('.price-jpyc').innerText.replace(/[^0-9]/g,'');
+            const jpyc = parseInt(jpycStr);
+            item.querySelector('.price-vnd').innerText = getFormattedPriceForStore(jpyc);
+        });
+        
+        log(`💱 Cổng giao dịch đã chuyển sang khu vực nội địa <b>${config.name}</b>. Các phương thức thanh toán đã được cập nhật.`, 'msg');
+    }
+
+    function getFormattedPriceForStore(jpyc) {
+        const config = CURRENCIES[activeCurrency];
+        const localFiat = jpyc * config.rateToJPYC;
+        return config.format(localFiat);
+    }
+
     // Two-way calculator logic
     function calcToJPYC() {
-        const vnd = parseInt(inputVND.value) || 0;
-        inputJPYC.value = Math.round(vnd / RATE);
+        const fiat = parseFloat(inputFiat.value) || 0;
+        const rate = CURRENCIES[activeCurrency].rateToJPYC;
+        inputJPYC.value = Math.round(fiat / rate);
     }
     
     function calcToVND() {
-        const jpyc = parseInt(inputJPYC.value) || 0;
-        inputVND.value = Math.round(jpyc * RATE);
+        const jpyc = parseFloat(inputJPYC.value) || 0;
+        const rate = CURRENCIES[activeCurrency].rateToJPYC;
+        inputFiat.value = (jpyc * rate).toFixed(activeCurrency === 'VND' || activeCurrency === 'JPY' ? 0 : 2);
     }
     
-    function setPreset(vnd) {
-        inputVND.value = vnd;
+    function setPreset(fiatAmount) {
+        inputFiat.value = fiatAmount;
         calcToJPYC();
     }
 
     // Refresh balance UI (VND Primary)
     function refreshBalanceUI(jpyc) {
         currentBalanceJPYC = jpyc;
-        const vnd = Math.round(jpyc * RATE);
+        const vnd = Math.round(jpyc * RATE_VND_TO_JPYC); // Master balance still shown in VND for unified display
         
         document.getElementById('balanceDisplayVND').innerText = vnd.toLocaleString('vi-VN') + " ₫";
         document.getElementById('balanceDisplayJPYC').innerText = `(${jpyc.toLocaleString('vi-VN')} JPYC)`;
@@ -398,37 +524,37 @@
         selectedOrder = orderId;
         selectedPriceJPYC = priceJPYC;
         
-        const vnd = Math.round(priceJPYC * RATE);
         document.getElementById('selectedProductName').innerText = orderId;
-        document.getElementById('selectedProductPriceVND').innerText = vnd.toLocaleString('vi-VN') + " ₫";
+        document.getElementById('selectedProductPriceVND').innerText = getFormattedPriceForStore(priceJPYC);
     }
 
     // Modal Triggers
     document.getElementById('btnOpenTopupModal').onclick = () => {
-        const vnd = parseInt(inputVND.value);
-        if(!vnd || vnd < 10000) return alert("Số tiền nạp tối thiểu 10.000đ");
+        const fiat = parseFloat(inputFiat.value);
+        if(!fiat || fiat <= 0) return alert("Vui lòng nhập số tiền hợp lệ");
 
-        document.getElementById('modalAmount').innerText = vnd.toLocaleString('vi-VN') + " ₫";
+        const config = CURRENCIES[activeCurrency];
+        document.getElementById('modalAmount').innerText = config.format(fiat);
         const body = document.getElementById('modalBody');
 
-        if (currentMethodCode === 'qr' || currentMethodCode === 'momo') {
+        if (currentMethodCode === 'qr' || currentMethodCode === 'momo' || currentMethodCode === 'paypay' || currentMethodCode === 'linepay' || currentMethodCode === 'alipay' || currentMethodCode === 'wechat') {
             document.getElementById('modalTitle').innerText = "Thanh toán " + currentMethodName;
             body.innerHTML = `
                 <div class="qr-placeholder">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" width="160" style="opacity:0.8;">
                 </div>
-                <p style="font-size: 13px; color: var(--text-2); margin-bottom:20px;">Mở ứng dụng ngân hàng quét mã để thanh toán <b>${vnd.toLocaleString('vi-VN')} ₫</b></p>
+                <p style="font-size: 13px; color: var(--text-2); margin-bottom:20px;">Mở ứng dụng thanh toán quét mã để nạp <b>${config.format(fiat)}</b></p>
             `;
         } else {
-            document.getElementById('modalTitle').innerText = "Thanh toán Thẻ Quốc Tế";
+            document.getElementById('modalTitle').innerText = "Thanh toán " + currentMethodName;
             body.innerHTML = `
                 <div class="form-group">
-                    <label>Số thẻ Visa/Mastercard:</label>
+                    <label>Số thẻ / Account Number:</label>
                     <input type="text" class="input-dark" value="4242 4242 4242 4242">
                 </div>
                 <div style="display:flex; gap:15px;" class="form-group">
                     <div style="flex:1;"><label>Ngày hết hạn:</label><input type="text" class="input-dark" value="12/26"></div>
-                    <div style="flex:1;"><label>Mã CVC:</label><input type="password" class="input-dark" value="123"></div>
+                    <div style="flex:1;"><label>Mã CVC/Security:</label><input type="password" class="input-dark" value="123"></div>
                 </div>
             `;
         }
@@ -444,21 +570,26 @@
     // API Topup
     document.getElementById('btnConfirmPayment').onclick = async () => {
         const email = document.getElementById('email').value;
-        const vndAmount = parseInt(inputVND.value);
+        const config = CURRENCIES[activeCurrency];
+        const fiatAmount = parseFloat(inputFiat.value);
         const jpycAmountExpected = parseInt(inputJPYC.value);
         
+        // Backend expects 'vnd_amount' to calculate JPYC amount. 
+        // We will mock the equivalent VND amount so backend logic correctly mints the requested JPYC
+        const equivalentBackendVndAmount = jpycAmountExpected * RATE_VND_TO_JPYC;
+
         const btn = document.getElementById('btnConfirmPayment');
         btn.innerText = "Đang chuyển JPYC on-chain...";
         btn.disabled = true;
 
-        log(`🟡 Cổng Ngân Hàng: Đã nhận ${vndAmount.toLocaleString('vi-VN')} ₫ qua ${currentMethodName}.`, 'warn');
-        log(`🟡 Kích hoạt Ví Tổng: Tự động đúc ${jpycAmountExpected.toLocaleString('vi-VN')} điện tử (JPYC)...`, 'warn');
+        log(`🟡 Cổng Ngân Hàng: Đã nhận ${config.format(fiatAmount)} qua ${currentMethodName}.`, 'warn');
+        log(`🟡 Kích hoạt Ví Tổng: Tự động đúc ${jpycAmountExpected.toLocaleString('vi-VN')} tài sản điện tử (JPYC)...`, 'warn');
         
         try {
             const res = await fetch(`${API}/api/topup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, vnd_amount: vndAmount })
+                body: JSON.stringify({ email: email, vnd_amount: Math.round(equivalentBackendVndAmount) })
             });
             const data = await res.json();
             
@@ -472,7 +603,7 @@
                 closeModal();
             }
         } catch (e) { 
-            log("🔴 Mất kết nối tới API Backend (port 8000)! Vui lòng bật Terminal chạy Python.", 'err'); 
+            log("🔴 Mất kết nối tới API Backend (port 8000)! Vui lòng kiểm tra lại.", 'err'); 
             closeModal();
         }
     };
@@ -482,9 +613,10 @@
         const email = document.getElementById('email').value;
         if(currentBalanceJPYC < selectedPriceJPYC) {
             const missingJPYC = selectedPriceJPYC - currentBalanceJPYC;
-            const missingVND = Math.round(missingJPYC * RATE);
-            alert(`Tài khoản không đủ tiền!\nBạn thiếu khoảng ${missingVND.toLocaleString('vi-VN')} ₫ (${missingJPYC} JPYC).`);
-            setPreset(missingVND);
+            const config = CURRENCIES[activeCurrency];
+            const missingFiat = (missingJPYC * config.rateToJPYC).toFixed(activeCurrency === 'VND' || activeCurrency === 'JPY' ? 0 : 2);
+            alert(`Tài khoản không đủ tiền!\nBạn thiếu khoảng ${config.format(parseFloat(missingFiat))} (${missingJPYC} JPYC).`);
+            setPreset(missingFiat);
             return;
         }
         
@@ -493,7 +625,8 @@
         btn.innerHTML = "Đang ký on-chain...";
         btn.disabled = true;
 
-        log(`🟡 Tài khoản khách trừ <b>${(selectedPriceJPYC * RATE).toLocaleString('vi-VN')} ₫</b>.`, 'warn');
+        const config = CURRENCIES[activeCurrency];
+        log(`🟡 Tài khoản khách trừ <b>${config.format(selectedPriceJPYC * config.rateToJPYC)}</b>.`, 'warn');
         log(`🟡 Backend đang dùng cấu trúc Ví Ẩn chuyển <b>${selectedPriceJPYC} JPYC</b> vào Smart Contract...`, 'warn');
         
         try {
