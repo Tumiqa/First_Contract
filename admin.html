@@ -49,6 +49,16 @@
         .btn-withdraw { width: 100%; padding: 16px; background: linear-gradient(135deg, #f97316, #c2410c); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 16px; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); text-transform: uppercase; letter-spacing: 1px;}
         .btn-withdraw:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4); }
         .btn-withdraw:disabled { background: #334155; box-shadow: none; transform: none; cursor: not-allowed; color: #94a3b8; }
+
+        .mint-box { background: rgba(15, 23, 42, 0.6); padding: 24px; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .mint-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #a855f7; }
+        .mint-row { display: flex; gap: 12px; margin-top: 4px; }
+        .mint-input { flex: 1; padding: 14px 16px; background: rgba(2, 6, 23, 0.5); border: 1px solid var(--border); border-radius: 10px; color: var(--text-1); font-size: 15px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; outline: none; transition: 0.2s; }
+        .mint-input:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15); }
+        .mint-input::placeholder { color: var(--text-2); }
+        .btn-mint { padding: 14px 24px; background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-mint:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45); }
+        .btn-mint:disabled { background: #334155; box-shadow: none; transform: none; cursor: not-allowed; color: #94a3b8; }
         
         .log-area { margin-top: 24px; padding: 16px; background: rgba(2, 6, 23, 0.8); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace; font-size: 13px; color: #c4b5fd; line-height: 1.6; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); min-height: 60px;}
         
@@ -91,6 +101,16 @@
                 </div>
             </div>
             <div class="instruction-text">* Số dư sẵn sàng để Off-ramp ra VNĐ/USD</div>
+        </div>
+
+        <!-- Mint JPYC vào Quỹ Admin -->
+        <div class="mint-box">
+            <div class="box-label" style="color: #d8b4fe;">🪙 Đúc JPYC vào Quỹ Dự Trữ (Mint)</div>
+            <div class="mint-row">
+                <input type="number" id="mintAmount" class="mint-input" placeholder="Số lượng JPYC cần đúc..." min="1">
+                <button id="btnMint" class="btn-mint" onclick="mintJpyc()">⚡ MINT</button>
+            </div>
+            <div class="instruction-text" style="color: #c4b5fd;">* Đúc JPYC thẳng vào Ví Công Ty để sẵn sàng nạp cho khách</div>
         </div>
     </div>
 
@@ -145,6 +165,46 @@
         } catch (error) {
             console.error(error);
             logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi: " + (error.message || error) + "</span>";
+        }
+    };
+
+    window.mintJpyc = async () => {
+        const btn = document.getElementById('btnMint');
+        const logArea = document.getElementById('logArea');
+        const amount = parseInt(document.getElementById('mintAmount').value);
+
+        if (!amount || amount <= 0) {
+            logArea.innerHTML = "<span style='color: var(--warning);'>⚠️ Vui lòng nhập số lượng JPYC cần đúc!</span>";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "ĐANG MINT...";
+        logArea.innerHTML = `<span style='color: #d8b4fe;'>🟣 Đang đúc ${amount.toLocaleString()} JPYC vào Quỹ Dự Trữ...</span>`;
+
+        try {
+            const res = await fetch(`${API_URL}/api/admin/mint`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount })
+            });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                logArea.innerHTML = `
+                    <span style='color: var(--accent);'>🟢 Mint thành công ${amount.toLocaleString()} JPYC!</span><br>
+                    🔗 Mã giao dịch: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank" style="color: #4ade80; text-decoration: underline;">${data.txHash.substring(0,20)}...</a>
+                `;
+                document.getElementById('mintAmount').value = '';
+                setTimeout(fetchBalances, 3000);
+            } else {
+                logArea.innerHTML = `<span style='color: var(--danger);'>🔴 Lỗi Mint: ${data.detail}</span>`;
+            }
+        } catch (e) {
+            logArea.innerHTML = "<span style='color: var(--danger);'>🔴 Lỗi kết nối máy chủ Backend!</span>";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '⚡ MINT';
         }
     };
 
