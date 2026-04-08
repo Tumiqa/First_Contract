@@ -29,7 +29,7 @@ import os
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Cấu Hình Blockchain (Mạng Sepolia Testnet)
-RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/grgjw1ZoCe7BqANEH_DS3"
+RPC_URL = os.getenv("SEPOLIA_RPC_URL", "https://eth-sepolia.g.alchemy.com/v2/PsyhKFtlqVE3ENQAZr2Py")
 web3 = Web3(Web3.HTTPProvider(RPC_URL))
 
 # Ví Tổng (Master Wallet) - trả tiền Gas và nắm giữ JPYC
