@@ -5,6 +5,8 @@ from web3 import Web3
 from eth_account import Account
 import secrets
 import json
+import threading
+import time
 
 app = FastAPI()
 
@@ -93,41 +95,101 @@ aloo_contract = web3.eth.contract(
 # { email: {address, pk, balance_jpyc} }
 user_db: dict = {}
 
+# ── Nonce Manager (tránh xung đột khi gửi nhiều TX liên tiếp) ─
+nonce_lock = threading.Lock()
+nonce_cache: dict[str, int] = {}  # {address: last_used_nonce}
+
+def get_next_nonce(address: str) -> int:
+    """Lấy nonce an toàn, tránh conflict khi gửi nhiều TX liên tục"""
+    with nonce_lock:
+        chain_nonce = web3.eth.get_transaction_count(address, "pending")
+        cached = nonce_cache.get(address, -1)
+        # Lấy max giữa chain và cache+1 để tránh reuse nonce
+        nonce = max(chain_nonce, cached + 1)
+        nonce_cache[address] = nonce
+        return nonce
+
+def get_eip1559_fees() -> dict:
+    """Tính gas fee theo chuẩn EIP-1559 cho Sepolia, đẩy cao hơn để đảm bảo confirm nhanh"""
+    try:
+        latest = web3.eth.get_block("latest")
+        base_fee = latest.get("baseFeePerGas", web3.to_wei(1, "gwei"))
+        # Priority fee cao hơn bình thường để ưu tiên
+        priority_fee = web3.to_wei(3, "gwei")
+        # Max fee = 2x base_fee + priority — đủ dư cho 2-3 block tiếp theo
+        max_fee = base_fee * 2 + priority_fee
+        return {
+            "maxFeePerGas": max_fee,
+            "maxPriorityFeePerGas": priority_fee,
+        }
+    except Exception:
+        # Fallback nếu node không hỗ trợ EIP-1559
+        return {"gasPrice": web3.eth.gas_price * 2}
+
+def wait_with_retry(tx_hash, timeout: int = 180, poll: float = 3.0):
+    """Đợi receipt với timeout dài hơn và log tiến trình"""
+    hex_h = web3.to_hex(tx_hash)
+    start = time.time()
+    while True:
+        try:
+            receipt = web3.eth.get_transaction_receipt(tx_hash)
+            if receipt is not None:
+                return receipt
+        except Exception:
+            pass  # Transaction chưa được index
+        
+        elapsed = time.time() - start
+        if elapsed > timeout:
+            raise Exception(
+                f"Transaction {hex_h} chưa confirm sau {timeout}s. "
+                f"TX có thể vẫn đang pending trên mạng — kiểm tra trên Etherscan Sepolia."
+            )
+        
+        # Log mỗi 30 giây
+        if int(elapsed) % 30 == 0 and int(elapsed) > 0:
+            print(f"  ⏳ Đang đợi confirm... ({int(elapsed)}s / {timeout}s)")
+        
+        time.sleep(poll)
+
 # ── Helpers ───────────────────────────────────────────────────
 def send_tx(fn_call, sender_pk: str, gas: int = 200_000) -> str:
     sender = web3.eth.account.from_key(sender_pk).address
-    nonce  = web3.eth.get_transaction_count(sender, "pending")
-    txn    = fn_call.build_transaction({
-        "chainId":  CHAIN_ID,
-        "gas":      gas,
-        "gasPrice": web3.eth.gas_price,
-        "nonce":    nonce,
+    nonce  = get_next_nonce(sender)
+    fees   = get_eip1559_fees()
+    
+    txn = fn_call.build_transaction({
+        "chainId": CHAIN_ID,
+        "gas":     gas,
+        "nonce":   nonce,
+        **fees,
     })
     signed  = web3.eth.account.sign_transaction(txn, private_key=sender_pk)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
-    receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+    receipt = wait_with_retry(tx_hash, timeout=180)
     
     if receipt.status != 1:
         raise Exception("Giao dịch bị Revert bởi Smart Contract (Có thể do thiếu số dư)")
         
-    hex_h   = web3.to_hex(tx_hash)
+    hex_h = web3.to_hex(tx_hash)
     print(f"  ✅ TX OK — Hash: {hex_h}  Block: {receipt.blockNumber}")
     return hex_h
 
 def send_eth(to: str, value_eth: float) -> str:
     """Gửi ETH từ Ví Tổng để trả phí Gas cho Ví Ẩn"""
-    nonce  = web3.eth.get_transaction_count(MASTER_ADDRESS, "pending")
-    txn    = {
-        "nonce":    nonce,
-        "to":       to,
-        "value":    web3.to_wei(value_eth, "ether"),
-        "gas":      21_000,
-        "gasPrice": web3.eth.gas_price,
-        "chainId":  CHAIN_ID,
+    nonce = get_next_nonce(MASTER_ADDRESS)
+    fees  = get_eip1559_fees()
+    
+    txn = {
+        "nonce":   nonce,
+        "to":      to,
+        "value":   web3.to_wei(value_eth, "ether"),
+        "gas":     21_000,
+        "chainId": CHAIN_ID,
+        **fees,
     }
     signed  = web3.eth.account.sign_transaction(txn, private_key=MASTER_PK)
     tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
-    web3.eth.wait_for_transaction_receipt(tx_hash)
+    wait_with_retry(tx_hash, timeout=180)
     return web3.to_hex(tx_hash)
 
 # ── Schemas ───────────────────────────────────────────────────
@@ -308,14 +370,15 @@ async def withdraw_revenue():
             raise Exception("Két sắt đang trống, không có doanh thu để rút!")
 
         # 2. THỰC HIỆN RÚT TOÀN BỘ SỐ DƯ
-        nonce = web3.eth.get_transaction_count(MASTER_ADDRESS, 'pending')
+        nonce = get_next_nonce(MASTER_ADDRESS)
+        fees  = get_eip1559_fees()
         
         # CHÚ Ý: Truyền contract_balance vào hàm withdraw
         tx = aloo_contract.functions.withdraw(contract_balance).build_transaction({
             'chainId': 11155111, # Sepolia
             'gas': 100_000,
-            'gasPrice': web3.eth.gas_price,
-            'nonce': nonce
+            'nonce': nonce,
+            **fees,
         })
         
         # Ký và gửi transaction
@@ -323,7 +386,7 @@ async def withdraw_revenue():
         tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
         
         # Đợi transaction được xác nhận
-        receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        receipt = wait_with_retry(tx_hash, timeout=180)
         if receipt.status != 1:
             raise Exception("Lệnh Rút Doanh Thu bị Revert bởi mạng Blockchain!")
             
