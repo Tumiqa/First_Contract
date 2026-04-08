@@ -7,8 +7,56 @@ import secrets
 import json
 import threading
 import time
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+# ── Auto-heal Nonce Gap (Thông tắc kẹt giao dịch) ─────────────
+def heal_stuck_nonces(address: str, private_key: str):
+    """Phát hiện và xóa sổ các giao dịch bị kẹt (Nonce gap) trên mạng"""
+    while True:
+        try:
+            latest = web3.eth.get_transaction_count(address, "latest")
+            pending = web3.eth.get_transaction_count(address, "pending")
+            
+            if latest >= pending:
+                print(f"✅ Ví {address} sạch sẽ, không có Nonce kẹt.")
+                return
+            
+            print(f"⚠️ Phát hiện Nonce kẹt cho {address}! Từ {latest} đến {pending-1}. Bắt đầu dọn dẹp...")
+            fees = get_eip1559_fees()
+            
+            for nonce in range(latest, pending):
+                print(f"  🧹 Đang dọn Nonce {nonce}...")
+                txn = {
+                    "nonce": nonce,
+                    "to": address,
+                    "value": 0,
+                    "gas": 21000,
+                    "chainId": CHAIN_ID,
+                    **fees,
+                }
+                signed = web3.eth.account.sign_transaction(txn, private_key)
+                tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction)
+                try:
+                    web3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+                    print(f"    ✔️ Dọn xong Nonce {nonce}")
+                except Exception as e:
+                    print(f"    ❌ Lỗi khi dọn Nonce {nonce}: {e}")
+                    
+            print(f"🎉 Hoàn thành dọn dẹp Nonce cho {address}.")
+            break
+        except Exception as e:
+            print(f"Lỗi khi heal nonce: {e}")
+            break
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Bắt đầu Lifespan: Kiểm tra tình trạng Ví Tổng...")
+    if web3.is_connected():
+        threading.Thread(target=heal_stuck_nonces, args=(MASTER_ADDRESS, MASTER_PK), daemon=True).start()
+    yield
+    print("🛑 Shutdown server...")
+
+app = FastAPI(lifespan=lifespan)
 
 # ---------------------------------------------
 # CẤU HÌNH CORS (BẢN CHUẨN ĐỂ FIX LỖI 405)
@@ -399,6 +447,14 @@ async def withdraw_revenue():
     except Exception as e:
         print("🔴 Lỗi Rút Doanh Thu:", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/admin/heal")
+async def api_heal_nonces():
+    if not web3.is_connected():
+        raise HTTPException(status_code=503, detail="Không kết nối được Hardhat Node")
+    
+    threading.Thread(target=heal_stuck_nonces, args=(MASTER_ADDRESS, MASTER_PK), daemon=True).start()
+    return {"message": "Đã bắt đầu tiến trình thông tắc (Heal Nonces) ngầm. Vui lòng check Server Logs."}
 
 @app.get("/")
 async def root():
